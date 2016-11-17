@@ -53,9 +53,6 @@
     "conflict": {
         "contao/core": "*"
     },
-    "replace": {
-        "contao/core-bundle": "*"
-    },
     "autoload": {
         "psr-4": {
             "Contao\\CoreBundle\\": "src/"
