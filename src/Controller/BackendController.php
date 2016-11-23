@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @author Andreas Schempp <https://github.com/aschempp>
  * @author Leo Feyer <https://github.com/leofeyer>
  *
- * @Route("/contao", defaults={"_scope" = "backend", "_token_check" = true}, condition="request.getHost() matches '/cms(.)./'", schemes="https")
+ * @Route("/contao", defaults={"_scope" = "backend", "_token_check" = true}, schemes="https")
  */
 class BackendController extends Controller
 {
