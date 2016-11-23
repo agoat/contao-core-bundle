@@ -2,10 +2,9 @@ contao:
     resource: "@ContaoCoreBundle/Controller"
     type: annotation
 
-# Redirect cms*.*.* to /contao
+# Redirect /contao/ to /contao
 contao_backend_redirect:
-    path: /
-    condition: request.getHost() matches '/cms(.)./'
+    path: /contao/
     defaults:
         _scope: backend
         _controller: "FrameworkBundle:Redirect:redirect"
