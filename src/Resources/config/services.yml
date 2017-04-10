@@ -19,11 +19,19 @@ services:
             - "@filesystem"
             - "@contao.resource_finder"
             - "@contao.resource_locator"
-            - "%kernel.root_dir%"
+            - "%contao.root_dir%"
             - "@database_connection"
             - "@contao.framework"
         tags:
             - { name: kernel.cache_warmer }
+
+    contao.controller.backend_csv_import:
+        class: Contao\CoreBundle\Controller\BackendCsvImportController
+        arguments:
+            - "@contao.framework"
+            - "@database_connection"
+            - "@request_stack"
+            - "%contao.root_dir%"
 
     contao.controller.insert_tags:
         class: Contao\CoreBundle\Controller\InsertTagsController
@@ -44,7 +52,6 @@ services:
             - "%kernel.packages%"
         calls:
             - ["setFramework", ["@contao.framework"]]
-            - ["setContainer", ["@service_container"]]
         tags:
             - { name: data_collector, template: "ContaoCoreBundle:Collector:contao", id: "contao" }
 
@@ -67,10 +74,30 @@ services:
             - "@request_stack"
             - "@router"
             - "@session"
-            - "%kernel.root_dir%"
+            - "@contao.routing.scope_matcher"
+            - "%contao.root_dir%"
             - "%contao.error_level%"
         calls:
             - ["setContainer", ["@service_container"]]
+
+    contao.menu.matcher:
+        class: Knp\Menu\Matcher\Matcher
+        public: false
+
+    contao.menu.picker_menu:
+        class: Contao\CoreBundle\Menu\PickerMenuBuilder
+        arguments:
+            - "@request_stack"
+            - "@router"
+            - "@event_dispatcher"
+            - "@knp_menu.factory"
+            - "@contao.menu.renderer"
+
+    contao.menu.renderer:
+        class: Knp\Menu\Renderer\ListRenderer
+        public: false
+        arguments:
+            - "@contao.menu.matcher"
 
     contao.monolog.handler:
         class: Contao\CoreBundle\Monolog\ContaoTableHandler
@@ -89,8 +116,7 @@ services:
         arguments:
             - "@request_stack"
             - "@security.token_storage"
-        calls:
-            - ["setContainer", ["@service_container"]]
+            - "@contao.routing.scope_matcher"
         tags:
             - { name: monolog.processor }
 
@@ -130,9 +156,29 @@ services:
             - "@contao.framework"
             - "%contao.prepend_locale%"
 
+    contao.routing.scope_matcher:
+        class: Contao\CoreBundle\Routing\ScopeMatcher
+        arguments:
+            - "@contao.routing.backend_matcher"
+            - "@contao.routing.frontend_matcher"
+
+    contao.routing.backend_matcher:
+        class: Symfony\Component\HttpFoundation\RequestMatcher
+        public: false
+        calls:
+            - ["matchAttribute", ["_scope", "backend"]]
+
+    contao.routing.frontend_matcher:
+        class: Symfony\Component\HttpFoundation\RequestMatcher
+        public: false
+        calls:
+            - ["matchAttribute", ["_scope", "frontend"]]
+
     contao.security.authenticator:
         class: Contao\CoreBundle\Security\ContaoAuthenticator
         public: false
+        arguments:
+            - "@contao.routing.scope_matcher"
         calls:
             - ["setContainer", ["@service_container"]]
 
@@ -141,6 +187,7 @@ services:
         public: false
         arguments:
             - "@contao.framework"
+            - "@contao.routing.scope_matcher"
         calls:
             - ["setContainer", ["@service_container"]]
 
@@ -158,7 +205,7 @@ services:
         class: Contao\CoreBundle\Image\LegacyResizer
         public: false
         arguments:
-            - "%kernel.root_dir%/../%contao.image.target_path%"
+            - "%contao.image.target_dir%"
             - "@contao.image.resize_calculator"
             - "@filesystem"
         calls:
@@ -205,3 +252,13 @@ services:
             - "_contao_fe_attributes"
         calls:
             - ["setName", ["contao_frontend"]]
+
+    contao.twig.template_extension:
+        class: Contao\CoreBundle\Twig\Extension\ContaoTemplateExtension
+        public: false
+        arguments:
+            - "@request_stack"
+            - "@contao.framework"
+            - "@contao.routing.scope_matcher"
+        tags:
+            - { name: twig.extension }

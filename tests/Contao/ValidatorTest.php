@@ -8,7 +8,7 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Contao;
+namespace Contao\CoreBundle\Tests\Contao;
 
 use Contao\Idna;
 use Contao\StringUtil;
@@ -19,7 +19,7 @@ use Contao\Validator;
  *
  * @author Christian Schiffler <https://github.com/discordier>
  *
- * @group legacy
+ * @group contao3
  */
 class ValidatorTest extends \PHPUnit_Framework_TestCase
 {

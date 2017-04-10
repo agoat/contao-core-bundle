@@ -8,10 +8,10 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Config\Loader;
+namespace Contao\CoreBundle\Tests\Config\Loader;
 
 use Contao\CoreBundle\Config\Loader\XliffFileLoader;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 
 /**
  * Tests the XliffFileLoader class.
@@ -56,7 +56,7 @@ class XliffFileLoaderTest extends TestCase
      */
     public function testLoadIntoString()
     {
-        $loader = new XliffFileLoader($this->getRootDir().'/app', false);
+        $loader = new XliffFileLoader($this->getRootDir(), false);
 
         $source = <<<'TXT'
 

@@ -57,7 +57,7 @@
           <a href="<?= $this->request ?>#skipNavigation" class="invisible"><?= $this->skipNavigation ?></a>
           <ul class="tl_level_1">
             <?php foreach ($this->modules as $strGroup=>$arrModules): ?>
-              <li class="tl_level_1_group<?= $arrModules['class'] ?>"><a href="<?= $arrModules['href'] ?>" title="<?= $arrModules['title']; ?>" class="group-<?= $strGroup ?>" onclick="return AjaxRequest.toggleNavigation(this,'<?= $strGroup ?>')"><?= $arrModules['label'] ?></a></li>
+              <li class="tl_level_1_group<?= $arrModules['class'] ?>"><a href="<?= $arrModules['href'] ?>" title="<?= $arrModules['title']; ?>" class="group-<?= $strGroup ?>" onclick="return AjaxRequest.toggleNavigation(this,'<?= $strGroup ?>', '<?= $arrModules['ajaxUrl']; ?>')"><?= $arrModules['label'] ?></a></li>
               <?php if ($arrModules['modules']): ?>
                 <li class="tl_parent" id="<?= $strGroup ?>">
                   <ul class="tl_level_2">
@@ -76,9 +76,9 @@
 
     <div id="main">
       <h1 class="main_headline"><?= $this->headline ?></h1>
-      <?php if ($this->managerHref): ?>
+      <?php if ($this->pickerMenu): ?>
         <div id="manager">
-          <a href="<?= $this->managerHref ?>" class="close" title="<?= StringUtil::specialchars($this->manager) ?>"><?= $this->manager ?></a>
+          <?= $this->pickerMenu ?>
         </div>
       <?php endif; ?>
       <?php if ($this->error): ?>
@@ -88,7 +88,15 @@
     </div>
   </div>
 
-  <?php if (!$this->isPopup): ?>
+  <?php if ($this->isPopup): ?>
+    <script>
+      if ($$('.tl_tree_checkbox,.tl_tree_radio').length > 0) {
+        parent.document.getElements('.simple-modal-footer a').removeClass('btn-disabled');
+      } else {
+        parent.document.getElements('.simple-modal-footer a').addClass('btn-disabled');
+      }
+    </script>
+  <?php else: ?>
     <div id="footer">
       <div>
         <span class="footer_top_container"><a href="<?= $this->request ?>#top" class="footer_top" title="<?= $this->backToTop ?>" accesskey="t"><?= $this->top ?></a></span>

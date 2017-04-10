@@ -8,12 +8,12 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Controller;
+namespace Contao\CoreBundle\Tests\Controller;
 
 use Contao\CoreBundle\Controller\InsertTagsController;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 
 /**
  * Tests the InsertTagsController class.
@@ -76,6 +76,7 @@ class InsertTagsControllerTest extends TestCase
                 $container->get('request_stack'),
                 $this->mockRouter('/index.html'),
                 $this->mockSession(),
+                $this->mockScopeMatcher(),
                 $this->getRootDir().'/app',
                 error_reporting(),
             ])

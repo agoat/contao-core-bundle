@@ -8,10 +8,10 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Command;
+namespace Contao\CoreBundle\Tests\Command;
 
 use Contao\CoreBundle\Command\InstallCommand;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Filesystem\Filesystem;
@@ -43,7 +43,7 @@ class InstallCommandTest extends TestCase
         $fs->remove($this->getRootDir().'/system/modules/.gitignore');
         $fs->remove($this->getRootDir().'/system/tmp');
         $fs->remove($this->getRootDir().'/templates');
-        $fs->remove($this->getRootDir().'/web');
+        $fs->remove($this->getRootDir().'/web/share');
     }
 
     /**
@@ -64,8 +64,9 @@ class InstallCommandTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->setParameter('kernel.root_dir', $this->getRootDir().'/app');
+        $container->setParameter('contao.root_dir', $this->getRootDir());
         $container->setParameter('contao.upload_path', 'files');
-        $container->setParameter('contao.image.target_path', 'assets/images');
+        $container->setParameter('contao.image.target_dir', $this->getRootDir().'/assets/images');
 
         $command = new InstallCommand('contao:install');
         $command->setContainer($container);
@@ -93,8 +94,9 @@ class InstallCommandTest extends TestCase
     {
         $container = new ContainerBuilder();
         $container->setParameter('kernel.root_dir', $this->getRootDir().'/app');
+        $container->setParameter('contao.root_dir', $this->getRootDir());
         $container->setParameter('contao.upload_path', 'files_test');
-        $container->setParameter('contao.image.target_path', 'assets/images_test');
+        $container->setParameter('contao.image.target_dir', $this->getRootDir().'/assets/images_test');
 
         $command = new InstallCommand('contao:install');
         $command->setContainer($container);

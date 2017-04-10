@@ -198,6 +198,26 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		$this->root = null;
 		$this->arrModule = $arrModule;
 
+		// Configure the picker
+		if (isset($_GET['target']) && \Input::get('act') != 'select' && \Input::get('act') != 'paste')
+		{
+			if (!isset($GLOBALS['TL_DCA'][$this->strTable]['config']['picker']))
+			{
+				throw new InternalServerErrorException('Table "' . $this->strTable . '" is not pickable.');
+			}
+
+			list($this->strPickerTable, $this->strPickerField) = explode('.', \Input::get('target'), 2);
+
+			\Controller::loadDataContainer($this->strPickerTable);
+
+			if (!isset($GLOBALS['TL_DCA'][$this->strPickerTable]['fields'][$this->strPickerField]))
+			{
+				throw new InternalServerErrorException('Field "' . $this->strPickerTable . '.' . $this->strPickerField . '" does not exist.');
+			}
+
+			$this->setPickerValue();
+		}
+
 		// Call onload_callback (e.g. to check permissions)
 		if (is_array($GLOBALS['TL_DCA'][$this->strTable]['config']['onload_callback']))
 		{
@@ -3547,6 +3567,26 @@ class DC_Table extends \DataContainer implements \listable, \editable
 <p class="tl_empty">'.$GLOBALS['TL_LANG']['MSC']['noResult'].'</p>';
 		}
 
+		$strClass = '';
+		$strPicker = '';
+
+		// Add the picker attributes
+		if ($this->strPickerField)
+		{
+			$strClass = ' picker unselectable';
+			$strPicker .= ' id="tl_select"';
+
+			if (isset($GLOBALS['TL_DCA'][$this->strTable]['config']['picker']['insertTag']))
+			{
+				$strPicker .= ' data-inserttag="' . $GLOBALS['TL_DCA'][$this->strTable]['config']['picker']['insertTag'] . '"';
+			}
+
+			if (isset($GLOBALS['TL_DCA'][$this->strTable]['config']['picker']['callback']))
+			{
+				$strPicker .= ' data-callback="' . $GLOBALS['TL_DCA'][$this->strTable]['config']['picker']['callback'] . '"';
+			}
+		}
+
 		$return .= ((\Input::get('act') == 'select') ? '
 
 <form action="'.ampersand(\Environment::get('request'), true).'" id="tl_select" class="tl_form'.((\Input::get('act') == 'select') ? ' unselectable' : '').'" method="post" novalidate>
@@ -3564,7 +3604,7 @@ class DC_Table extends \DataContainer implements \listable, \editable
 <label for="tl_select_trigger" class="tl_select_label">'.$GLOBALS['TL_LANG']['MSC']['selectAll'].'</label> <input type="checkbox" id="tl_select_trigger" onclick="Backend.toggleCheckboxes(this)" class="tl_tree_checkbox">
 </div>' : '').'
 
-<ul class="tl_listing '. $treeClass .'">
+<ul class="tl_listing '.$treeClass.$strClass.'"'.$strPicker.'>
   <li class="tl_folder_top cf"><div class="tl_left">'.$label.'</div> <div class="tl_right">';
 
 		$_buttons = '&nbsp;';
@@ -3779,7 +3819,6 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		$objSessionBag = \System::getContainer()->get('session')->getBag('contao_backend');
 
 		$session = $objSessionBag->all();
-
 		$node = ($GLOBALS['TL_DCA'][$this->strTable]['list']['sorting']['mode'] == 6) ? $this->strTable.'_'.$table.'_tree' : $this->strTable.'_tree';
 
 		// Toggle nodes
@@ -3845,12 +3884,19 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		$folderAttribute = 'style="margin-left:20px"';
 		$showFields = $GLOBALS['TL_DCA'][$table]['list']['label']['fields'];
 		$level = ($intMargin / $intSpacing + 1);
+		$blnIsOpen = (!empty($arrFound) || $session[$node][$id] == 1);
+
+		// Always show selected nodes
+		if (!$blnIsOpen && !empty($this->arrPickerValue) && !empty(array_intersect($this->Database->getChildRecords([$id], $this->strTable), $this->arrPickerValue)))
+		{
+			$blnIsOpen = true;
+		}
 
 		if (!empty($childs))
 		{
 			$folderAttribute = '';
-			$img = (!empty($arrFound) || $session[$node][$id] == 1) ? 'folMinus.svg' : 'folPlus.svg';
-			$alt = (!empty($arrFound) || $session[$node][$id] == 1) ? $GLOBALS['TL_LANG']['MSC']['collapseNode'] : $GLOBALS['TL_LANG']['MSC']['expandNode'];
+			$img = $blnIsOpen ? 'folMinus.svg' : 'folPlus.svg';
+			$alt = $blnIsOpen ? $GLOBALS['TL_LANG']['MSC']['collapseNode'] : $GLOBALS['TL_LANG']['MSC']['expandNode'];
 			$return .= '<a href="'.$this->addToUrl('ptg='.$id).'" title="'.\StringUtil::specialchars($alt).'" onclick="Backend.getScrollOffset();return AjaxRequest.toggleStructure(this,\''.$node.'_'.$id.'\','.$level.','.$GLOBALS['TL_DCA'][$this->strTable]['list']['sorting']['mode'].')">'.\Image::getHtml($img, '', 'style="margin-right:2px"').'</a>';
 		}
 
@@ -3924,6 +3970,20 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		if ($this->strTable == $table)
 		{
 			$_buttons .= (\Input::get('act') == 'select') ? '<input type="checkbox" name="IDS[]" id="ids_'.$id.'" class="tl_tree_checkbox" value="'.$id.'">' : $this->generateButtons($objRow->row(), $table, $this->root, $blnCircularReference, $childs, $previous, $next);
+
+			if ($this->strPickerField)
+			{
+				switch ($GLOBALS['TL_DCA'][$this->strPickerTable]['fields'][$this->strPickerField]['eval']['fieldType'])
+				{
+					case 'checkbox':
+						$_buttons .= ' <input type="checkbox" name="'.$this->strPickerField.'[]" id="'.$this->strPickerField.'_'.$id.'" class="tl_tree_checkbox" value="'.\StringUtil::specialchars($id).'" onfocus="Backend.getScrollOffset()"'.\Widget::optionChecked($id, $this->arrPickerValue).'>';
+						break;
+
+					case 'radio':
+						$_buttons .= ' <input type="radio" name="'.$this->strPickerField.'" id="'.$this->strPickerField.'_'.$id.'" class="tl_tree_radio" value="'.\StringUtil::specialchars($id).'" onfocus="Backend.getScrollOffset()"'.\Widget::optionChecked($id, $this->arrPickerValue).'>';
+						break;
+				}
+			}
 		}
 
 		// Paste buttons
@@ -3999,25 +4059,24 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		// Begin a new submenu
 		if (!$blnNoRecursion)
 		{
-			if (!empty($arrFound) || !empty($childs) && $session[$node][$id] == 1)
+			$blnAddParent = ($blnIsOpen || !empty($arrFound) || !empty($childs) && $session[$node][$id] == 1);
+
+			if ($blnAddParent)
 			{
 				$return .= '<li class="parent" id="'.$node.'_'.$id.'"><ul class="level_'.$level.'">';
 			}
 
 			// Add the records of the parent table
-			if (!empty($arrFound) || $session[$node][$id] == 1)
+			if ($blnIsOpen && is_array($childs))
 			{
-				if (is_array($childs))
+				for ($k=0, $c=count($childs); $k<$c; $k++)
 				{
-					for ($k=0, $c=count($childs); $k<$c; $k++)
-					{
-						$return .= $this->generateTree($table, $childs[$k], array('p'=>$childs[($k-1)], 'n'=>$childs[($k+1)]), $blnHasSorting, ($intMargin + $intSpacing), $arrClipboard, ((($GLOBALS['TL_DCA'][$this->strTable]['list']['sorting']['mode'] == 5 && $childs[$k] == $arrClipboard['id']) || $blnCircularReference) ? true : false), ($blnProtected || $protectedPage), $blnNoRecursion, $arrFound);
-					}
+					$return .= $this->generateTree($table, $childs[$k], array('p'=>$childs[($k-1)], 'n'=>$childs[($k+1)]), $blnHasSorting, ($intMargin + $intSpacing), $arrClipboard, ((($GLOBALS['TL_DCA'][$this->strTable]['list']['sorting']['mode'] == 5 && $childs[$k] == $arrClipboard['id']) || $blnCircularReference) ? true : false), ($blnProtected || $protectedPage), $blnNoRecursion, $arrFound);
 				}
 			}
 
 			// Close the submenu
-			if (!empty($arrFound) || !empty($childs) && $session[$node][$id] == 1)
+			if ($blnAddParent)
 			{
 				$return .= '</ul></li>';
 			}
@@ -6142,5 +6201,28 @@ class DC_Table extends \DataContainer implements \listable, \editable
 		}
 
 		return $group;
+	}
+
+
+	/**
+	 * Set the picker value
+	 */
+	protected function setPickerValue()
+	{
+		$varValue = \Input::get('value');
+
+		if (empty($varValue))
+		{
+			return;
+		}
+
+		$varValue = array_filter(explode(',', $varValue));
+
+		if (empty($varValue))
+		{
+			return;
+		}
+
+		$this->arrPickerValue = $varValue;
 	}
 }

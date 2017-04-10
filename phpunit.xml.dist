@@ -26,7 +26,12 @@
                 <!-- exclude files with symbols and side-effects -->
                 <file>./src/EventListener/UserAwareTrait.php</file>
                 <file>./src/Exception/ServiceUnavailableException.php</file>
+                <file>./src/Framework/ScopeAwareTrait.php</file>
             </exclude>
         </whitelist>
     </filter>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener" />
+    </listeners>
 </phpunit>

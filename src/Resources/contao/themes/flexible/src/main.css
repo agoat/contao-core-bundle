@@ -171,7 +171,7 @@ body.popup {
 /* Buttons */
 #tl_buttons,#tl_buttons_a {
 	margin:0;
-	padding:9px 9px 0;
+	padding:9px 9px 3px;
 	text-align:right;
 }
 .toggleWrap {
@@ -518,6 +518,15 @@ table.tl_listing {
 }
 .tl_listing_container .tl_content ul li > * {
 	vertical-align:middle;
+}
+.tl_listing.picker .tl_file,.tl_listing.picker .tl_folder {
+	background-image:linear-gradient(90deg, transparent calc(100% - 26px), #ffce42 26px);
+}
+.tl_listing.picker .tl_tree_checkbox,.tl_listing.picker .tl_tree_radio {
+	margin-left:8px;
+}
+.tl_listing.picker .tl_tree_checkbox:disabled,.tl_listing.picker .tl_tree_radio:disabled {
+	visibility:hidden;
 }
 
 /* List view */
@@ -1162,17 +1171,40 @@ ul.sortable button[disabled]:hover {
 	background:rgba(255,255,255,.7);
 }
 #manager {
-	padding:7px 12px;
-	background:#f9f9f9;
+	padding:9px 6px 0;
 	border-bottom:1px solid #ddd;
 }
-#manager .open {
-	padding:3px 15px 3px 21px;
-	background:url("icons/manager.svg") left center no-repeat;
+#manager.legacy {
+	padding:6px 0;
+	background-color:#f9f9f9;
 }
-#manager .close {
-	padding:3px 15px 3px 21px;
-	background:url("icons/back.svg") left center no-repeat;
+#manager li {
+	display:inline-block;
+	padding:8px 0;
+	background-color:#f9f9f9;
+	border:1px solid #ddd;
+	border-radius:2px 2px 0 0;
+	position:relative;
+	top:1px;
+}
+#manager li.active {
+	background-color:#f3f3f3;
+	border-bottom-color:#f3f3f3;
+}
+#manager a {
+	padding:3px 12px 3px 32px;
+	background:url("icons/manager.svg") 12px center no-repeat;
+}
+#manager a.filemounts {
+	background-image:url("icons/filemounts.svg");
+	background-size:14px;
+}
+#manager a.pagemounts {
+	background-image:url("icons/pagemounts.svg");
+	background-size:16px;
+}
+#manager a.close {
+	background-image:url("icons/back.svg");
 }
 .ace_editor {
 	padding:3px;
@@ -1452,15 +1484,11 @@ fieldset.collapsed > legend {
 }
 
 /* DropZone */
-.dz-container {
+.dropzone {
 	margin:2px 0;
-	padding:6px;
-	border:3px dashed #ddd;
-}
-.dz-message {
-	cursor:pointer;
-	padding:36px 18px;
-	transition:all .15s linear;
+	min-height:auto !important;
+	border:3px dashed #ddd !important;
+	border-radius:2px;
 }
 .dz-message span {
 	font-size:1.3125rem;

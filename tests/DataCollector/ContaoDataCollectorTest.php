@@ -8,11 +8,10 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\DataCollector;
+namespace Contao\CoreBundle\Tests\DataCollector;
 
-use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\DataCollector\ContaoDataCollector;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -36,7 +35,7 @@ class ContaoDataCollectorTest extends TestCase
     /**
      * Tests the collect() method in the back end scope.
      */
-    public function testCollectInBackendScope()
+    public function testCollectWitoutPageObject()
     {
         $GLOBALS['TL_DEBUG'] = [
             'classes_set' => ['Contao\System'],
@@ -46,7 +45,6 @@ class ContaoDataCollectorTest extends TestCase
         ];
 
         $collector = new ContaoDataCollector(['contao/core-bundle' => '4.0.0']);
-        $collector->setContainer($this->mockContainerWithContaoScopes(ContaoCoreBundle::SCOPE_BACKEND));
         $collector->collect(new Request(), new Response());
 
         $this->assertEquals(['ContentText' => 'Contao\ContentText'], $collector->getClassesAliased());
@@ -76,7 +74,7 @@ class ContaoDataCollectorTest extends TestCase
     /**
      * Tests the collect() method in the front end scope.
      */
-    public function testCollectInFrontendScope()
+    public function testCollectWithPageObject()
     {
         $layout = new \stdClass();
         $layout->name = 'Default';
@@ -102,7 +100,6 @@ class ContaoDataCollectorTest extends TestCase
         $objPage->layoutId = 2;
 
         $collector = new ContaoDataCollector([]);
-        $collector->setContainer($this->mockContainerWithContaoScopes(ContaoCoreBundle::SCOPE_FRONTEND));
         $collector->setFramework($this->mockContaoFramework(null, null, ['Contao\LayoutModel' => $adapter]));
         $collector->collect(new Request(), new Response());
 
@@ -118,6 +115,8 @@ class ContaoDataCollectorTest extends TestCase
             ],
             $collector->getSummary()
         );
+
+        unset($GLOBALS['objPage']);
     }
 
     /**

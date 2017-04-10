@@ -8,10 +8,10 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\DependencyInjection\Compiler;
+namespace Contao\CoreBundle\Tests\DependencyInjection\Compiler;
 
 use Contao\CoreBundle\DependencyInjection\Compiler\AddResourcesPathsPass;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
@@ -40,6 +40,7 @@ class AddResourcesPathsPassTest extends TestCase
 
         $container = new ContainerBuilder();
         $container->setParameter('kernel.root_dir', $this->getRootDir().'/app');
+        $container->setParameter('contao.root_dir', $this->getRootDir());
 
         $container->setParameter('kernel.bundles', [
             'FrameworkBundle' => 'Symfony\Bundle\FrameworkBundle\FrameworkBundle',

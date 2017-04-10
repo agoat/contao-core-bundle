@@ -8,9 +8,9 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Contao;
+namespace Contao\CoreBundle\Tests\Contao;
 
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 use Contao\StringUtil;
 use Contao\System;
 
@@ -19,8 +19,9 @@ use Contao\System;
  *
  * @author Yanick Witschi <https://github.com/toflar>
  * @author Martin Auswöger <martin@auswoeger.com>
+ * @author Leo Feyer <https://github.com/leofeyer>
  *
- * @group legacy
+ * @group contao3
  */
 class StringUtilTest extends TestCase
 {
@@ -39,7 +40,30 @@ class StringUtilTest extends TestCase
      */
     protected function setUp()
     {
+        if (!defined('TL_ROOT')) {
+            define('TL_ROOT', $this->getRootDir());
+        }
+
         System::setContainer($this->mockContainerWithContaoScopes());
+    }
+
+    /**
+     * Tests the generateAlias() method.
+     */
+    public function testGenerateAlias()
+    {
+        $GLOBALS['TL_CONFIG']['characterSet'] = 'UTF-8';
+
+        $this->assertEquals('foo', StringUtil::generateAlias('foo'));
+        $this->assertEquals('foo', StringUtil::generateAlias('FOO'));
+        $this->assertEquals('foo-bar', StringUtil::generateAlias('foo bar'));
+        $this->assertEquals('foo-bar', StringUtil::generateAlias('%foo&bar~'));
+        $this->assertEquals('foo-bar', StringUtil::generateAlias('foo&amp;bar'));
+        $this->assertEquals('foo-bar', StringUtil::generateAlias('foo-{{link::12}}-bar'));
+        $this->assertEquals('foo-bar', StringUtil::generateAlias('föö-bär'));
+        $this->assertEquals('id-123', StringUtil::generateAlias('123'));
+        $this->assertEquals('123foo', StringUtil::generateAlias('123foo'));
+        $this->assertEquals('foo123', StringUtil::generateAlias('foo123'));
     }
 
     /**
@@ -459,5 +483,60 @@ class StringUtilTest extends TestCase
             'Unknown operator (====)' => ['{if foo===="bar"}{endif}'],
             'Unknown operator (<==)' => ['{if foo<=="bar"}{endif}'],
         ];
+    }
+
+    /**
+     * Tests the stripRootDir() method.
+     */
+    public function testStripRootDir()
+    {
+        $this->assertEquals('', StringUtil::stripRootDir($this->getRootDir().'/'));
+        $this->assertEquals('', StringUtil::stripRootDir($this->getRootDir().'\\'));
+        $this->assertEquals('foo', StringUtil::stripRootDir($this->getRootDir().'/foo'));
+        $this->assertEquals('foo', StringUtil::stripRootDir($this->getRootDir().'\foo'));
+        $this->assertEquals('foo/', StringUtil::stripRootDir($this->getRootDir().'/foo/'));
+        $this->assertEquals('foo\\', StringUtil::stripRootDir($this->getRootDir().'\foo\\'));
+        $this->assertEquals('foo/bar', StringUtil::stripRootDir($this->getRootDir().'/foo/bar'));
+        $this->assertEquals('foo\bar', StringUtil::stripRootDir($this->getRootDir().'\foo\bar'));
+    }
+
+    /**
+     * Tests the stripRootDir() method.
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testStripRootDirDifferentPath()
+    {
+        StringUtil::stripRootDir('/foo');
+    }
+
+    /**
+     * Tests the stripRootDir() method.
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testStripRootDirParentPath()
+    {
+        StringUtil::stripRootDir(dirname($this->getRootDir()).'/');
+    }
+
+    /**
+     * Tests the stripRootDir() method.
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testStripRootDirSuffix()
+    {
+        StringUtil::stripRootDir($this->getRootDir().'foo/');
+    }
+
+    /**
+     * Tests the stripRootDir() method.
+     *
+     * @expectedException \InvalidArgumentException
+     */
+    public function testStripRootDirNoSlash()
+    {
+        StringUtil::stripRootDir($this->getRootDir());
     }
 }

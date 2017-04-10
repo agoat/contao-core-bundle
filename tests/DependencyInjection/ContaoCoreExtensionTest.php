@@ -8,9 +8,10 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\DependencyInjection;
+namespace Contao\CoreBundle\Tests\DependencyInjection;
 
 use Contao\CoreBundle\DependencyInjection\ContaoCoreExtension;
+use Contao\CoreBundle\Tests\TestCase;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 
@@ -19,7 +20,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
  *
  * @author Leo Feyer <https://github.com/leofeyer>
  */
-class ContaoCoreExtensionTest extends \PHPUnit_Framework_TestCase
+class ContaoCoreExtensionTest extends TestCase
 {
     /**
      * Tests the object instantiation.
@@ -36,7 +37,12 @@ class ContaoCoreExtensionTest extends \PHPUnit_Framework_TestCase
      */
     public function testLoad()
     {
-        $container = new ContainerBuilder(new ParameterBag(['kernel.debug' => false]));
+        $container = new ContainerBuilder(
+            new ParameterBag([
+                'kernel.debug' => false,
+                'kernel.root_dir' => $this->getRootDir().'/app',
+            ])
+        );
 
         $params = [
             'contao' => [
@@ -49,6 +55,46 @@ class ContaoCoreExtensionTest extends \PHPUnit_Framework_TestCase
         $extension->load($params, $container);
 
         $this->assertTrue($container->has('contao.listener.add_to_search_index'));
+    }
+
+    /**
+     * Tests the deprecated contao.image.target_path configuration option.
+     *
+     * @expectedDeprecation Using the contao.image.target_path parameter has been deprecated %s.
+     * @group legacy
+     */
+    public function testImageTargetPath()
+    {
+        $container = new ContainerBuilder(
+            new ParameterBag([
+                'kernel.debug' => false,
+                'kernel.root_dir' => $this->getRootDir().'/app',
+            ])
+        );
+
+        $extension = new ContaoCoreExtension();
+        $extension->load([], $container);
+
+        $this->assertEquals(
+            str_replace('/', DIRECTORY_SEPARATOR, $this->getRootDir().'/assets/images'),
+            $container->getParameter('contao.image.target_dir')
+        );
+
+        $extension = new ContaoCoreExtension();
+
+        $extension->load(
+            [
+                'contao' => [
+                    'image' => ['target_path' => 'my/custom/dir'],
+                ],
+            ],
+            $container
+        );
+
+        $this->assertEquals(
+            str_replace('/', DIRECTORY_SEPARATOR, $this->getRootDir()).'/my/custom/dir',
+            $container->getParameter('contao.image.target_dir')
+        );
     }
 
     /**

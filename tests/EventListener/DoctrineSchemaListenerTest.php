@@ -8,11 +8,11 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Doctrine\Schema;
+namespace Contao\CoreBundle\Tests\Doctrine\Schema;
 
 use Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider;
 use Contao\CoreBundle\EventListener\DoctrineSchemaListener;
-use Contao\CoreBundle\Test\DoctrineTestCase;
+use Contao\CoreBundle\Tests\DoctrineTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs;
 use Doctrine\DBAL\Platforms\MySqlPlatform;

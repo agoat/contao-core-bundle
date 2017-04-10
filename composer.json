@@ -10,23 +10,24 @@
         }
     ],
     "require": {
-        "php": ">=5.5.0",
+        "php": ">=5.6.0",
         "ext-dom": "*",
         "ext-gd": "*",
         "ext-pcre": "*",
-        "symfony/console": "^2.8|^3.0",
-        "symfony/filesystem": "^2.8|^3.0",
-        "symfony/finder": "^2.8|^3.0",
-        "symfony/framework-bundle": "^2.8|^3.0",
-        "symfony/http-foundation": "^2.8|^3.0",
-        "symfony/security": "^2.8|^3.0",
+        "symfony/console": "^3.2",
+        "symfony/filesystem": "^3.2",
+        "symfony/finder": "^3.2",
+        "symfony/framework-bundle": "^3.2",
+        "symfony/http-foundation": "^3.2",
+        "symfony/security": "^3.2",
         "symfony/swiftmailer-bundle": "^2.3",
-        "symfony/yaml": "^2.8|^3.0",
+        "symfony/yaml": "^3.2",
         "sensio/framework-extra-bundle": "^3.0.2",
         "doctrine/dbal": "^2.5",
         "doctrine/doctrine-bundle": "^1.6",
         "doctrine/doctrine-cache-bundle": "^1.3",
         "imagine/imagine": "^0.6",
+        "knplabs/knp-menu-bundle": "^2.1",
         "knplabs/knp-time-bundle": "^1.5.2",
         "leafo/scssphp": "^0.6",
         "league/uri": "^4.0",
@@ -41,7 +42,8 @@
         "swiftmailer/swiftmailer": "^5.4.5",
         "tecnickcom/tcpdf": "^6.0",
         "true/punycode": "^1.0",
-        "twig/twig": "^1.20",
+        "twig/twig": "^1.26",
+        "webmozart/path-util": "^2.0",
         "contao/image": "^0.3.1",
         "contao/imagine-svg": "^0.1.2",
         "contao-components/ace": "^1.2",
@@ -51,7 +53,7 @@
         "contao-components/compass": "^0.12",
         "contao-components/contao": "^6.0",
         "contao-components/datepicker": "^2.2.0.2",
-        "contao-components/dropzone": "^3.12",
+        "contao-components/dropzone": "^4.1.1",
         "contao-components/highlight": "^8.9",
         "contao-components/html5shiv": "^3.7.3",
         "contao-components/jquery": "^1.11.3",
@@ -60,7 +62,7 @@
         "contao-components/mediaelement": "^2.21.1",
         "contao-components/mootools": "^1.6.0.1",
         "contao-components/respimage": "^1.4",
-        "contao-components/simplemodal": "^1.2.4",
+        "contao-components/simplemodal": "^1.2.5",
         "contao-components/swipe": "^2.0.3",
         "contao-components/tablesort": "^3.4.5",
         "contao-components/tablesorter": "^2.0.5.3",
@@ -77,7 +79,7 @@
         "monolog/monolog": "^1.11",
         "phpunit/phpunit": "^4.5",
         "satooshi/php-coveralls": "^1.0",
-        "symfony/phpunit-bridge": "^2.8|^3.0"
+        "symfony/phpunit-bridge": "^3.2"
     },
     "suggest": {
         "lexik/maintenance-bundle": "To put the application into maintenance mode"
@@ -109,7 +111,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Contao\\CoreBundle\\Test\\": "tests/",
+            "Contao\\CoreBundle\\Tests\\": "tests/",
             "Contao\\TestBundle\\": "tests/Fixtures/vendor/contao/test-bundle/"
         }
     },

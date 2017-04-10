@@ -8,12 +8,13 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\DependencyInjection;
+namespace Contao\CoreBundle\Tests\DependencyInjection;
 
 use Contao\CoreBundle\DependencyInjection\Configuration;
+use Contao\CoreBundle\Tests\TestCase;
 use Symfony\Component\Config\Definition\Processor;
 
-class ConfigurationTest extends \PHPUnit_Framework_TestCase
+class ConfigurationTest extends TestCase
 {
     /**
      * @var Configuration
@@ -27,7 +28,7 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->configuration = new Configuration(false);
+        $this->configuration = new Configuration(false, $this->getRootDir().'/app');
     }
 
     /**
@@ -74,11 +75,13 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
             [''],
             ['app'],
             ['assets'],
+            ['bin'],
             ['contao'],
             ['plugins'],
             ['share'],
             ['system'],
             ['templates'],
+            ['var'],
             ['vendor'],
             ['web'],
         ];

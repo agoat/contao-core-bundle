@@ -8,14 +8,16 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test;
+namespace Contao\CoreBundle\Tests;
 
 use Contao\CoreBundle\Config\ResourceFinder;
+use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Framework\Adapter;
 use Contao\CoreBundle\Framework\ContaoFramework;
 use Contao\CoreBundle\Image\LegacyResizer;
 use Contao\CoreBundle\Image\ImageFactory;
 use Contao\CoreBundle\Image\PictureFactory;
+use Contao\CoreBundle\Routing\ScopeMatcher;
 use Contao\CoreBundle\Session\Attribute\ArrayAttributeBag;
 use Contao\Image\ResizeCalculator;
 use Contao\Image\PictureGenerator;
@@ -27,6 +29,7 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestMatcher;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -186,6 +189,19 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Mocks a request scope matcher.
+     *
+     * @return ScopeMatcher
+     */
+    protected function mockScopeMatcher()
+    {
+        return new ScopeMatcher(
+            new RequestMatcher(null, null, null, null, ['_scope' => 'backend']),
+            new RequestMatcher(null, null, null, null, ['_scope' => 'frontend'])
+        );
+    }
+
+    /**
      * Mocks a container with scopes.
      *
      * @param string|null $scope
@@ -195,11 +211,13 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
     protected function mockContainerWithContaoScopes($scope = null)
     {
         $container = new Container();
-        $container->setParameter('kernel.root_dir', $this->getRootDir());
+        $container->setParameter('kernel.root_dir', $this->getRootDir().'/app');
         $container->setParameter('kernel.cache_dir', $this->getCacheDir());
         $container->setParameter('kernel.debug', false);
+        $container->setParameter('contao.root_dir', $this->getRootDir());
+        $container->setParameter('contao.web_dir', $this->getRootDir().'/web');
         $container->setParameter('contao.image.bypass_cache', false);
-        $container->setParameter('contao.image.target_path', 'assets/images');
+        $container->setParameter('contao.image.target_dir', $this->getRootDir().'/assets/images');
         $container->setParameter('contao.image.valid_extensions', ['jpg', 'svg', 'svgz']);
 
         $container->setParameter('contao.image.imagine_options', [
@@ -232,6 +250,24 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $container->set('session', $this->mockSession());
         $container->set('monolog.logger.contao', new NullLogger());
 
+        $container->set(
+            'contao.routing.backend_matcher',
+            new RequestMatcher(null, null, null, null, ['_scope' => ContaoCoreBundle::SCOPE_BACKEND])
+        );
+
+        $container->set(
+            'contao.routing.frontend_matcher',
+            new RequestMatcher(null, null, null, null, ['_scope' => ContaoCoreBundle::SCOPE_FRONTEND])
+        );
+
+        $container->set(
+            'contao.routing.scope_matcher',
+            new ScopeMatcher(
+                $container->get('contao.routing.backend_matcher'),
+                $container->get('contao.routing.frontend_matcher')
+            )
+        );
+
         return $container;
     }
 
@@ -243,7 +279,7 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
      * @param array                $adapters
      * @param array                $instances
      *
-     * @return ContaoFramework The object instance
+     * @return ContaoFramework|\PHPUnit_Framework_MockObject_MockObject The object instance
      */
     public function mockContaoFramework(RequestStack $requestStack = null, RouterInterface $router = null, array $adapters = [], array $instances = [])
     {
@@ -276,7 +312,8 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                 $requestStack,
                 $router,
                 $this->mockSession(),
-                $this->getRootDir().'/app',
+                $this->mockScopeMatcher(),
+                $this->getRootDir(),
                 error_reporting(),
             ])
             ->setMethods(['getAdapter', 'createInstance'])
@@ -356,6 +393,9 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
                     case 'minPasswordLength':
                         return $minPasswordLength;
 
+                    case 'disableCron':
+                        return false;
+
                     default:
                         return null;
                 }
@@ -431,8 +471,14 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
         $filesystem = new Filesystem();
         $framework = $this->mockContaoFramework();
 
+        if ($rootDir) {
+            $container->setParameter('contao.root_dir', $rootDir);
+            $container->setParameter('contao.web_dir', $rootDir.'/web');
+            $container->setParameter('contao.image.target_dir', $rootDir.'/assets/images');
+        }
+
         $resizer = new LegacyResizer(
-            ($rootDir ?: $this->getRootDir()).'/'.$container->getParameter('contao.image.target_path'),
+            $container->getParameter('contao.image.target_dir'),
             $calculator
         );
 

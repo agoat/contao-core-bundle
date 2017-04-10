@@ -23,12 +23,13 @@ var AjaxRequest =
 	/**
 	 * Toggle the navigation menu
 	 *
-	 * @param {object} el The DOM element
-	 * @param {string} id The ID of the menu item
+	 * @param {object} el  The DOM element
+	 * @param {string} id  The ID of the menu item
+	 * @param {string} url The Ajax URL
 	 *
 	 * @returns {boolean}
 	 */
-	toggleNavigation: function(el, id) {
+	toggleNavigation: function(el, id, url) {
 		el.blur();
 
 		var item = $(id),
@@ -39,17 +40,18 @@ var AjaxRequest =
 				item.setStyle('display', null);
 				parent.removeClass('node-collapsed').addClass('node-expanded');
 				$(el).store('tip:title', Contao.lang.collapse);
-				new Request.Contao().post({'action':'toggleNavigation', 'id':id, 'state':1, 'REQUEST_TOKEN':Contao.request_token});
+				new Request.Contao({ url: url }).post({'action':'toggleNavigation', 'id':id, 'state':1, 'REQUEST_TOKEN':Contao.request_token});
 			} else {
 				item.setStyle('display', 'none');
 				parent.removeClass('node-expanded').addClass('node-collapsed');
 				$(el).store('tip:title', Contao.lang.expand);
-				new Request.Contao().post({'action':'toggleNavigation', 'id':id, 'state':0, 'REQUEST_TOKEN':Contao.request_token});
+				new Request.Contao({ url: url }).post({'action':'toggleNavigation', 'id':id, 'state':0, 'REQUEST_TOKEN':Contao.request_token});
 			}
 			return false;
 		}
 
 		new Request.Contao({
+			url: url,
 			evalScripts: true,
 			onRequest: AjaxRequest.displayBox(Contao.lang.loading + ' …'),
 			onSuccess: function(txt) {
@@ -924,24 +926,27 @@ var Backend =
 			'onHide': function() { document.body.setStyle('overflow', 'auto'); }
 		});
 		M.addButton(Contao.lang.close, 'btn', function() {
+			if (this.buttons[0].hasClass('btn-disabled')) {
+				return;
+			}
 			this.hide();
 		});
 		M.addButton(Contao.lang.apply, 'btn primary', function() {
+			if (this.buttons[1].hasClass('btn-disabled')) {
+				return;
+			}
 			var frm = window.frames['simple-modal-iframe'],
 				val = [], ul, inp, field, act, it, i;
 			if (frm === undefined) {
 				alert('Could not find the SimpleModal frame');
 				return;
 			}
-			if (frm.document.location.href.indexOf('/contao?') != -1) {
-				alert(Contao.lang.picker);
-				return; // see #5704
-			}
-			ul = frm.document.getElementById(opt.id);
+			ul = frm.document.getElementById('tl_select');
 			inp = ul.getElementsByTagName('input');
 			for (i=0; i<inp.length; i++) {
-				if (!inp[i].checked || inp[i].id.match(/^check_all_/)) continue;
-				if (!inp[i].id.match(/^reset_/)) val.push(inp[i].get('value'));
+				if (inp[i].checked && !inp[i].id.match(/^(check_all_|reset_)/)) {
+					val.push(inp[i].get('value'));
+				}
 			}
 			if (opt.tag && (field = $(opt.tag))) {
 				field.value = val.join(',');
@@ -981,14 +986,14 @@ var Backend =
 	 * @param {object} win        The window object
 	 */
 	openModalBrowser: function(field_name, url, type, win) {
-		var file = '/file',
+		var act = 'files',
 			swtch = (type == 'file' ? '&amp;switch=1' : ''),
 			isLink = (url.indexOf('{{link_url::') != -1);
 		if (type == 'file' && (url == '' || isLink)) {
-			file = '/page';
+			act = 'page';
 		}
 		if (isLink) {
-			url = url.replace(/^\{\{link_url::([0-9]+)}}$/, '$1');
+			url = url.replace(/^{{link_url::([0-9]+)}}$/, '$1');
 		}
 		var M = new SimpleModal({
 			'width': 768,
@@ -1010,7 +1015,7 @@ var Backend =
 			}
 			inp = frm.document.getElementById('tl_select').getElementsByTagName('input');
 			for (i=0; i<inp.length; i++) {
-				if (inp[i].checked && !inp[i].id.match(/^reset_/)) {
+				if (inp[i].checked && !inp[i].id.match(/^(check_all_|reset_)/)) {
 					val = inp[i].get('value');
 					break;
 				}
@@ -1023,7 +1028,7 @@ var Backend =
 		});
 		M.show({
 			'title': win.document.getElement('div.mce-title').get('text'),
-			'contents': '<iframe src="' + document.location.pathname + file + '?table=tl_content&amp;field=singleSRC&amp;value=' + url + swtch + '" name="simple-modal-iframe" width="100%" height="' + (window.getSize().y-192).toInt() + '" frameborder="0"></iframe>',
+			'contents': '<iframe src="' + document.location.pathname + '?do=' + act + '&amp;target=tl_content.singleSRC&amp;value=' + url + swtch + '&amp;popup=1" name="simple-modal-iframe" width="100%" height="' + (window.getSize().y-192).toInt() + '" frameborder="0"></iframe>',
 			'model': 'modal'
 		});
 	},
@@ -2336,7 +2341,7 @@ var Backend =
 				startIndex = checkboxes.indexOf(start);
 				from = Math.min(thisIndex, startIndex);
 				to = Math.max(thisIndex, startIndex);
-				status = checkboxes[startIndex].checked ? true : false;
+				status = !!checkboxes[startIndex].checked;
 
 				for (from; from<=to; from++) {
 					checkboxes[from].checked = status;

@@ -8,9 +8,9 @@
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Contao;
+namespace Contao\CoreBundle\Tests\Contao;
 
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
 use Contao\Environment;
 use Contao\System;
 
@@ -19,7 +19,7 @@ use Contao\System;
  *
  * @author Leo Feyer <https://github.com/leofeyer>
  *
- * @group legacy
+ * @group contao3
  */
 class EnvironmentTest extends TestCase
 {
