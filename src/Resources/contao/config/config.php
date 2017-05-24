@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -311,7 +311,7 @@ $GLOBALS['TL_PURGE'] = array
 		'images' => array
 		(
 			'callback' => array('Automator', 'purgeImageCache'),
-			'affected' => array(System::getContainer()->getParameter('contao.image.target_path'))
+			'affected' => array(StringUtil::stripRootDir(System::getContainer()->getParameter('contao.image.target_dir')))
 		),
 		'scripts' => array
 		(

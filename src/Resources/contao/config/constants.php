@@ -3,15 +3,15 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
 
 // Core version
-define('VERSION', '4.3');
-define('BUILD', '0');
-define('LONG_TERM_SUPPORT', false);
+define('VERSION', '4.4');
+define('BUILD', '0-RC1');
+define('LONG_TERM_SUPPORT', true);
 
 // Link constants
 define('LINK_BLUR', ' onclick="this.blur()"');

@@ -3,16 +3,17 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
 
 namespace Contao\CoreBundle\DependencyInjection\Compiler;
 
+use Imagine\Exception\RuntimeException;
+use Imagine\Gd\Imagine;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Imagine\Exception\RuntimeException;
 
 /**
  * Sets the available Imagine class name in the container.
@@ -24,7 +25,7 @@ class AddImagineClassPass implements CompilerPassInterface
     /**
      * @var array
      */
-    private $magicks = ['Imagick', 'Gmagick'];
+    private $magicks = ['Gmagick', 'Imagick'];
 
     /**
      * {@inheritdoc}
@@ -54,6 +55,6 @@ class AddImagineClassPass implements CompilerPassInterface
             return $class;
         }
 
-        return 'Imagine\Gd\Imagine'; // see #616
+        return Imagine::class; // see #616
     }
 }

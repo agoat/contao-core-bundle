@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -80,11 +80,15 @@ class ModuleWizard extends \Widget
 			{
 				foreach ($arrSections as $v)
 				{
-					$cols[$v['id']] = $v['id'];
-					$GLOBALS['TL_LANG']['COLS'][$v['id']] = $v['title'];
+					if (!empty($v['id']))
+					{
+						$cols[$v['id']] = $v['id'];
+					}
 				}
 			}
 		}
+
+		$cols = \Backend::convertLayoutSectionIdsToAssociativeArray($cols);
 
 		// Get the new value
 		if (\Input::post('FORM_SUBMIT') == $this->strTable)
@@ -95,7 +99,7 @@ class ModuleWizard extends \Widget
 		// Make sure there is at least an empty array
 		if (!is_array($this->varValue) || !$this->varValue[0])
 		{
-			$this->varValue = array('');
+			$this->varValue = array(array('mod'=>0, 'col'=>'main'));
 		}
 		else
 		{
@@ -149,9 +153,9 @@ class ModuleWizard extends \Widget
 			$options = '';
 
 			// Add columns
-			foreach ($cols as $v)
+			foreach ($cols as $k=>$v)
 			{
-				$options .= '<option value="'.\StringUtil::specialchars($v).'"'.static::optionSelected($v, $this->varValue[$i]['col']).'>'.$GLOBALS['TL_LANG']['COLS'][$v].'</option>';
+				$options .= '<option value="'.\StringUtil::specialchars($k).'"'.static::optionSelected($k, $this->varValue[$i]['col']).'>'.$v.'</option>';
 			}
 
 			$return .= '
@@ -163,7 +167,7 @@ class ModuleWizard extends \Widget
 			{
 				if ($button == 'edit')
 				{
-					$return .= ' <a href="contao/main.php?do=themes&amp;table=tl_module&amp;act=edit&amp;id=' . $this->varValue[$i]['mod'] . '&amp;popup=1&amp;nb=1&amp;rt=' . REQUEST_TOKEN . '" title="' . \StringUtil::specialchars($GLOBALS['TL_LANG']['tl_layout']['edit_module']) . '" class="module_link" ' . (($this->varValue[$i]['mod'] > 0) ? '' : ' style="display:none"') . ' onclick="Backend.openModalIframe({\'width\':768,\'title\':\'' . \StringUtil::specialchars(str_replace("'", "\\'", $GLOBALS['TL_LANG']['tl_layout']['edit_module'])) . '\',\'url\':this.href});return false">'.\Image::getHtml('edit.svg').'</a>' . \Image::getHtml('edit_.svg', '', 'class="module_image"' . (($this->varValue[$i]['mod'] > 0) ? ' style="display:none"' : ''));
+					$return .= ' <a href="contao/main.php?do=themes&amp;table=tl_module&amp;act=edit&amp;id=' . $this->varValue[$i]['mod'] . '&amp;popup=1&amp;nb=1&amp;rt=' . REQUEST_TOKEN . '" title="' . \StringUtil::specialchars($GLOBALS['TL_LANG']['tl_layout']['edit_module']) . '" class="module_link" ' . (($this->varValue[$i]['mod'] > 0) ? '' : ' style="display:none"') . ' onclick="Backend.openModalIframe({\'title\':\'' . \StringUtil::specialchars(str_replace("'", "\\'", $GLOBALS['TL_LANG']['tl_layout']['edit_module'])) . '\',\'url\':this.href});return false">'.\Image::getHtml('edit.svg').'</a>' . \Image::getHtml('edit_.svg', '', 'class="module_image"' . (($this->varValue[$i]['mod'] > 0) ? ' style="display:none"' : ''));
 				}
 				elseif ($button == 'drag')
 				{

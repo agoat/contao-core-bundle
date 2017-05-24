@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -32,6 +32,7 @@ $GLOBALS['TL_DCA']['tl_article'] = array
 		'onload_callback' => array
 		(
 			array('tl_article', 'checkPermission'),
+			array('tl_article', 'addCustomLayoutSectionReferences'),
 			array('tl_page', 'addBreadcrumb')
 		),
 		'sql' => array
@@ -682,14 +683,16 @@ class tl_article extends Backend
 				{
 					foreach ($arrCustom as $v)
 					{
-						$arrSections[] = $v['id'];
-						$GLOBALS['TL_LANG']['COLS'][$v['id']] = $v['title'];
+						if (!empty($v['id']))
+						{
+							$arrSections[] = $v['id'];
+						}
 					}
 				}
 			}
 		}
 
-		return array_values(array_unique($arrSections));
+		return Backend::convertLayoutSectionIdsToAssociativeArray($arrSections);
 	}
 
 

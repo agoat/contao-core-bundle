@@ -3,12 +3,14 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
 
 namespace Contao;
+
+use Patchwork\Utf8;
 
 
 /**
@@ -165,7 +167,13 @@ class Validator
 	 */
 	public static function isUrl($varValue)
 	{
-		return preg_match('/^[\w\/.*+?$#%:,;{}()[\]@&!=~|-]+$/u', \Idna::encodeUrl($varValue));
+		try
+		{
+			$varValue = \Idna::encodeUrl($varValue);
+		}
+		catch (\InvalidArgumentException $e) {}
+
+		return preg_match('/^[\w\/.*+?$#%:,;{}()[\]@&!=~|-]+$/u', $varValue);
 	}
 
 
@@ -395,7 +403,7 @@ class Validator
 		}
 
 		// Must not be longer than 255 characters
-		if (mb_strlen($strName) > 255)
+		if (Utf8::strlen($strName) > 255)
 		{
 			return false;
 		}

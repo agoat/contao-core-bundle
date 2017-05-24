@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -309,7 +309,7 @@ abstract class Module extends \Frontend
 		foreach ($objSubpages as $objSubpage)
 		{
 			// Skip hidden sitemap pages
-			if ($this instanceof ModuleSitemap && $objSubpages->sitemap == 'map_never')
+			if ($this instanceof ModuleSitemap && $objSubpage->sitemap == 'map_never')
 			{
 				continue;
 			}

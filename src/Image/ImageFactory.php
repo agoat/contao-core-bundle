@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -12,7 +12,6 @@ namespace Contao\CoreBundle\Image;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
 use Contao\FilesModel;
-use Contao\ImageSizeModel;
 use Contao\Image\Image;
 use Contao\Image\ImageInterface;
 use Contao\Image\ImportantPart;
@@ -20,6 +19,7 @@ use Contao\Image\ResizeConfiguration;
 use Contao\Image\ResizeConfigurationInterface;
 use Contao\Image\ResizeOptions;
 use Contao\Image\ResizerInterface;
+use Contao\ImageSizeModel;
 use Imagine\Image\Box;
 use Imagine\Image\ImagineInterface;
 use Imagine\Image\Point;
@@ -106,13 +106,13 @@ class ImageFactory implements ImageFactoryInterface
         } else {
             $fileExtension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
 
-            if (in_array($fileExtension, ['svg', 'svgz'])) {
+            if (in_array($fileExtension, ['svg', 'svgz'], true)) {
                 $imagine = $this->imagineSvg;
             } else {
                 $imagine = $this->imagine;
             }
 
-            if (!in_array($fileExtension, $this->validExtensions)) {
+            if (!in_array($fileExtension, $this->validExtensions, true)) {
                 throw new \InvalidArgumentException(
                     sprintf('Image type "%s" was not allowed to be processed', $fileExtension)
                 );
@@ -130,7 +130,7 @@ class ImageFactory implements ImageFactoryInterface
 
         if (!is_object($path) || !($path instanceof ImageInterface)) {
             if (null === $importantPart) {
-                $importantPart = $this->createImportantPart($image->getPath());
+                $importantPart = $this->createImportantPart($image);
             }
 
             $image->setImportantPart($importantPart);
@@ -244,17 +244,26 @@ class ImageFactory implements ImageFactoryInterface
     /**
      * Fetches the important part from the database.
      *
-     * @param string $path
+     * @param ImageInterface $image
      *
      * @return ImportantPart|null
      */
-    private function createImportantPart($path)
+    private function createImportantPart(ImageInterface $image)
     {
         /** @var FilesModel $filesModel */
         $filesModel = $this->framework->getAdapter(FilesModel::class);
-        $file = $filesModel->findByPath($path);
+        $file = $filesModel->findByPath($image->getPath());
 
         if (null === $file || !$file->importantPartWidth || !$file->importantPartHeight) {
+            return null;
+        }
+
+        $imageSize = $image->getDimensions()->getSize();
+
+        if (
+            $file->importantPartX + $file->importantPartWidth > $imageSize->getWidth()
+            || $file->importantPartY + $file->importantPartHeight > $imageSize->getHeight()
+        ) {
             return null;
         }
 

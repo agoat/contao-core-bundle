@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -43,7 +43,7 @@ class SectionWizard extends \Widget
 	{
 		if (isset($varInput['id']))
 		{
-			$varInput['id'] = \StringUtil::standardize($varInput['id']);
+			$varInput['id'] = \StringUtil::standardize($varInput['id'], true);
 		}
 
 		return parent::validator($varInput);

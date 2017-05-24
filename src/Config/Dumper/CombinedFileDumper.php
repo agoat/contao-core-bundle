@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -83,19 +83,11 @@ class CombinedFileDumper implements DumperInterface
      */
     public function dump($files, $cacheFile, array $options = [])
     {
-        $type = isset($options['type']) ? $options['type'] : null;
         $buffer = $this->header;
+        $type = isset($options['type']) ? $options['type'] : null;
 
         foreach ((array) $files as $file) {
-            if ($this->addNamespace) {
-                $buffer .= "\nnamespace {";
-            }
-
             $buffer .= $this->loader->load($file, $type);
-
-            if ($this->addNamespace) {
-                $buffer .= "\n}\n";
-            }
         }
 
         $this->filesystem->dumpFile($this->cacheDir.'/'.$cacheFile, $buffer);
