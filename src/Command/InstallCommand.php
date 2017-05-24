@@ -69,7 +69,6 @@ class InstallCommand extends AbstractLockedCommand
         'system/themes',
         'system/tmp',
         '%s/share',
-        '%s/system/cron',
     ];
 
     /**
@@ -93,7 +92,7 @@ class InstallCommand extends AbstractLockedCommand
     {
         $this->fs = new Filesystem();
         $this->io = new SymfonyStyle($input, $output);
-        $this->rootDir = dirname($this->getContainer()->getParameter('kernel.root_dir'));
+        $this->rootDir = $this->getContainer()->getParameter('kernel.project_dir');
         $this->webDir = rtrim($input->getArgument('target'), '/');
 
         $this->addEmptyDirs();
@@ -146,7 +145,7 @@ class InstallCommand extends AbstractLockedCommand
             $this->addIgnoredDir($this->rootDir.'/'.sprintf($path, $this->webDir));
         }
 
-        $this->addIgnoredDir($this->rootDir.'/'.$this->getContainer()->getParameter('contao.image.target_path'));
+        $this->addIgnoredDir($this->getContainer()->getParameter('contao.image.target_dir'));
     }
 
     /**

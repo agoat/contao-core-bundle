@@ -246,7 +246,7 @@ class tl_templates extends Backend
 
 		foreach ($files as $file)
 		{
-			$strRelpath = str_replace(TL_ROOT . DIRECTORY_SEPARATOR, '', $file->getPathname());
+			$strRelpath = StringUtil::stripRootDir($file->getPathname());
 			$strModule = preg_replace('@^(vendor|system/modules)/([^/]+(/.*-bundle)?)/.*$@', '$2', strtr($strRelpath, '\\', '/'));
 			$arrAllTemplates[$strModule][$strRelpath] = basename($strRelpath);
 		}
@@ -505,7 +505,7 @@ class tl_templates extends Backend
 	 */
 	public function compareButton($row, $href, $label, $title, $icon, $attributes)
 	{
-		return is_file(TL_ROOT . '/' . $row['id']) ? '<a href="' . $this->addToUrl($href . '&amp;id=' . $row['id']) . '" title="' . StringUtil::specialchars($title) . '" onclick="Backend.openModalIframe({\'width\':768,\'title\':\'' . StringUtil::specialchars(str_replace("'", "\\'", $row['id'])) . '\',\'url\':this.href});return false"' . $attributes . '>' . Image::getHtml($icon, $label) . '</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
+		return is_file(TL_ROOT . '/' . $row['id']) ? '<a href="' . $this->addToUrl($href . '&amp;id=' . $row['id']) . '" title="' . StringUtil::specialchars($title) . '" onclick="Backend.openModalIframe({\'title\':\'' . StringUtil::specialchars(str_replace("'", "\\'", $row['id'])) . '\',\'url\':this.href});return false"' . $attributes . '>' . Image::getHtml($icon, $label) . '</a> ' : Image::getHtml(preg_replace('/\.svg$/i', '_.svg', $icon)).' ';
 	}
 
 
