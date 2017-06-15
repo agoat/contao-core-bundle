@@ -4,7 +4,7 @@ contao:
 
 # Redirect cms*.*.* to /contao
 contao_backend_redirect:
-    path: /contao/
+    path: /
     condition: request.getHost() matches '/cms(.)./'
     defaults:
         _scope: backend
