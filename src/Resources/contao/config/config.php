@@ -22,17 +22,16 @@ $GLOBALS['BE_MOD'] = array
 			'tables'      => array('tl_article', 'tl_content'),
 			'table'       => array('contao.controller.backend_csv_import', 'importTableWizard'),
 			'list'        => array('contao.controller.backend_csv_import', 'importListWizard')
-		),
-		'form' => array
-		(
-			'tables'      => array('tl_form', 'tl_form_field'),
-			'option'      => array('contao.controller.backend_csv_import', 'importOptionWizard')
 		)
 	),
 
 	// Design modules
 	'design' => array
 	(
+		'page' => array
+		(
+			'tables'      => array('tl_page')
+		),
 		'themes' => array
 		(
 			'tables'      => array('tl_theme', 'tl_module', 'tl_style_sheet', 'tl_style', 'tl_layout', 'tl_image_size', 'tl_image_size_item'),
@@ -41,15 +40,16 @@ $GLOBALS['BE_MOD'] = array
 			'import'      => array('StyleSheets', 'importStyleSheet'),
 			'export'      => array('StyleSheets', 'exportStyleSheet')
 		),
-		'page' => array
-		(
-			'tables'      => array('tl_page')
-		),
 		'tpl_editor' => array
 		(
 			'tables'      => array('tl_templates'),
 			'new_tpl'     => array('tl_templates', 'addNewTemplate'),
 			'compare'     => array('tl_templates', 'compareTemplate')
+		),
+		'form' => array
+		(
+			'tables'      => array('tl_form', 'tl_form_field'),
+			'option'      => array('contao.controller.backend_csv_import', 'importOptionWizard')
 		)
 	),
 
