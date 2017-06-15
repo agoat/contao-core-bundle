@@ -48,7 +48,8 @@ $GLOBALS['BE_MOD'] = array
 		),
 		'form' => array
 		(
-			'tables'      => array('tl_form', 'tl_form_field')
+			'tables'      => array('tl_form', 'tl_form_field'),
+			'option'      => array('contao.controller.backend_csv_import', 'importOptionWizard')
 		)
 	),
 
