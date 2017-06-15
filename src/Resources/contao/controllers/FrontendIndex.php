@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -96,7 +96,7 @@ class FrontendIndex extends \Frontend
 		$objPage = $pageModel;
 
 		// Check the URL and language of each page if there are multiple results
-		if ($objPage !== null && $objPage->count() > 1)
+		if ($objPage instanceof Model\Collection && $objPage->count() > 1)
 		{
 			$objNewPage = null;
 			$arrPages = array();
@@ -267,32 +267,42 @@ class FrontendIndex extends \Frontend
 			switch ($objPage->type)
 			{
 				case 'error_404':
-					/** @var PageError404 $objHandler */
 					$objHandler = new $GLOBALS['TL_PTY']['error_404']();
 
+					/** @var PageError404 $objHandler */
 					return $objHandler->getResponse();
 					break;
 
 				case 'error_403':
-					/** @var PageError403 $objHandler */
 					$objHandler = new $GLOBALS['TL_PTY']['error_403']();
 
+					/** @var PageError403 $objHandler */
 					return $objHandler->getResponse($objPage->rootId);
 					break;
 
 				default:
-					/** @var PageRegular $objHandler */
 					$objHandler = new $GLOBALS['TL_PTY'][$objPage->type]();
 
 					// Backwards compatibility
 					if (!method_exists($objHandler, 'getResponse'))
 					{
 						ob_start();
-						$objHandler->generate($objPage, true);
 
-						return new Response(ob_get_clean(), http_response_code());
+						try
+						{
+							/** @var PageRegular $objHandler */
+							$objHandler->generate($objPage, true);
+							$objResponse = new Response(ob_get_contents(), http_response_code());
+						}
+						finally
+						{
+							ob_end_clean();
+						}
+
+						return $objResponse;
 					}
 
+					/** @var PageRegular $objHandler */
 					return $objHandler->getResponse($objPage, true);
 					break;
 			}

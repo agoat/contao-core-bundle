@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -73,7 +73,7 @@ class SymlinksCommand extends AbstractLockedCommand
     protected function executeLocked(InputInterface $input, OutputInterface $output)
     {
         $this->io = new SymfonyStyle($input, $output);
-        $this->rootDir = dirname($this->getContainer()->getParameter('kernel.root_dir'));
+        $this->rootDir = $this->getContainer()->getParameter('kernel.project_dir');
         $this->webDir = rtrim($input->getArgument('target'), '/');
 
         $this->generateSymlinks();
@@ -108,10 +108,7 @@ class SymlinksCommand extends AbstractLockedCommand
         $this->symlink('system/themes', $this->webDir.'/system/themes');
 
         // Symlinks the logs directory
-        $this->symlink(
-            str_replace($this->rootDir.'/', '', $this->getContainer()->getParameter('kernel.logs_dir')),
-            'system/logs'
-        );
+        $this->symlink($this->getRelativePath($this->getContainer()->getParameter('kernel.logs_dir')), 'system/logs');
     }
 
     /**
@@ -151,7 +148,7 @@ class SymlinksCommand extends AbstractLockedCommand
         $themes = $this->getContainer()->get('contao.resource_finder')->findIn('themes')->depth(0)->directories();
 
         foreach ($themes as $theme) {
-            $path = str_replace(strtr($this->rootDir, '\\', '/').'/', '', strtr($theme->getPathname(), '\\', '/'));
+            $path = $this->getRelativePath($theme->getPathname());
 
             if (0 === strpos($path, 'system/modules/')) {
                 continue;
@@ -261,27 +258,43 @@ class SymlinksCommand extends AbstractLockedCommand
         foreach ($files as $key => $file) {
             $path = rtrim(strtr($prepend.'/'.$file->getRelativePath(), '\\', '/'), '/');
 
-            $chunks = explode('/', $path);
-            array_pop($chunks);
+            if (!empty($parents)) {
+                $parent = dirname($path);
 
-            $parent = implode('/', $chunks);
+                while (false !== strpos($parent, '/')) {
+                    if (in_array($parent, $parents, true)) {
+                        $this->rows[] = [
+                            sprintf(
+                                '<fg=yellow;options=bold>%s</>',
+                                '\\' === DIRECTORY_SEPARATOR ? 'WARNING' : '!'
+                            ),
+                            $this->webDir.'/'.$path,
+                            sprintf('<comment>Skipped because %s will be symlinked.</comment>', $parent),
+                        ];
 
-            if (in_array($parent, $parents)) {
-                $this->rows[] = [
-                    sprintf(
-                        '<fg=yellow;options=bold>%s</>',
-                        '\\' === DIRECTORY_SEPARATOR ? 'WARNING' : '!'
-                    ),
-                    $this->webDir.'/'.$path,
-                    sprintf('<comment>Skipped because %s will be symlinked.</comment>', $parent),
-                ];
+                        unset($files[$key]);
+                        break;
+                    }
 
-                unset($files[$key]);
+                    $parent = dirname($parent);
+                }
             }
 
             $parents[] = $path;
         }
 
         return array_values($files);
+    }
+
+    /**
+     * Returns the path relative to the root directory.
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    private function getRelativePath($path)
+    {
+        return str_replace(strtr($this->rootDir, '\\', '/').'/', '', strtr($path, '\\', '/'));
     }
 }

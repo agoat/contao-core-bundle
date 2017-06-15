@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -35,9 +35,9 @@ trait FrameworkAwareTrait
     /**
      * Returns the framework service.
      *
-     * @return ContaoFrameworkInterface
-     *
      * @throws \LogicException
+     *
+     * @return ContaoFrameworkInterface
      *
      * @deprecated Deprecated since Contao 4.3, to be removed in Contao 5.0
      */

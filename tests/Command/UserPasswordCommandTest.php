@@ -3,17 +3,23 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Command;
+namespace Contao\CoreBundle\Tests\Command;
 
+use Contao\Config;
 use Contao\CoreBundle\Command\UserPasswordCommand;
 use Contao\CoreBundle\Framework\Adapter;
-use Contao\CoreBundle\Test\TestCase;
+use Contao\CoreBundle\Tests\TestCase;
+use Contao\Encryption;
+use Doctrine\DBAL\Connection;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Exception\InvalidArgumentException;
+use Symfony\Component\Console\Exception\RuntimeException;
+use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -42,12 +48,10 @@ class UserPasswordCommandTest extends TestCase
         $framework = $this->mockContaoFramework(
             null,
             null,
-            [
-                'Contao\Encryption' => $this->mockEncryptionAdapter(),
-            ]
+            [Encryption::class => $this->mockEncryptionAdapter()]
         );
 
-        $connection = $this->getMock('Doctrine\DBAL\Connection', [], [], '', false);
+        $connection = $this->createMock(Connection::class);
 
         $this->container = $this->mockContainerWithContaoScopes();
         $this->container->set('contao.framework', $framework);
@@ -64,7 +68,7 @@ class UserPasswordCommandTest extends TestCase
     public function testInstantiation()
     {
         $this->assertInstanceOf('Contao\CoreBundle\Command\UserPasswordCommand', $this->command);
-        $this->assertEquals('contao:user:password', $this->command->getName());
+        $this->assertSame('contao:user:password', $this->command->getName());
     }
 
     /**
@@ -81,13 +85,69 @@ class UserPasswordCommandTest extends TestCase
     }
 
     /**
+     * Tests the execution with a password argument.
+     */
+    public function testExecutionWithPasswordArgument()
+    {
+        $code = (new CommandTester($this->command))
+            ->execute(
+                [
+                    'username' => 'foobar',
+                    '--password' => '12345678',
+                ]
+            )
+        ;
+
+        $this->assertSame(0, $code);
+    }
+
+    /**
+     * Tests the execution with the password dialog.
+     */
+    public function testExecutionWithPasswordDialog()
+    {
+        $question = $this->createMock(QuestionHelper::class);
+
+        $question
+            ->method('ask')
+            ->willReturn('12345678')
+        ;
+
+        $this->command->getHelperSet()->set($question, 'question');
+
+        $code = (new CommandTester($this->command))->execute(['username' => 'foobar']);
+
+        $this->assertSame(0, $code);
+    }
+
+    /**
+     * Tests the execution with differing passwords.
+     */
+    public function testExecutionWithDifferingPasswords()
+    {
+        $question = $this->createMock(QuestionHelper::class);
+
+        $question
+            ->method('ask')
+            ->willReturnOnConsecutiveCalls(['12345678', '87654321'])
+        ;
+
+        $this->command->getHelperSet()->set($question, 'question');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The passwords do not match.');
+
+        (new CommandTester($this->command))->execute(['username' => 'foobar']);
+    }
+
+    /**
      * Tests the command without a username.
-     *
-     * @expectedException \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage Please provide the username as argument.
      */
     public function testExceptionWhenMissingUsername()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Please provide the username as argument.');
+
         (new CommandTester($this->command))->execute([]);
     }
 
@@ -103,17 +163,17 @@ class UserPasswordCommandTest extends TestCase
             )
         ;
 
-        $this->assertEquals(1, $code);
+        $this->assertSame(1, $code);
     }
 
     /**
      * Tests the minimum password length.
-     *
-     * @expectedException \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage The password must be at least 8 characters long.
      */
     public function testMinimumPasswordLength()
     {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The password must be at least 8 characters long.');
+
         (new CommandTester($this->command))
             ->execute(
                 [
@@ -127,9 +187,6 @@ class UserPasswordCommandTest extends TestCase
 
     /**
      * Tests a custom minimum password length.
-     *
-     * @expectedException \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage The password must be at least 16 characters long.
      */
     public function testCustomPasswordLength()
     {
@@ -137,8 +194,8 @@ class UserPasswordCommandTest extends TestCase
             null,
             null,
             [
-                'Contao\Config' => $this->mockConfigAdapter(16),
-                'Contao\Encryption' => $this->mockEncryptionAdapter(),
+                Config::class => $this->mockConfigAdapter(16),
+                Encryption::class => $this->mockEncryptionAdapter(),
             ]
         );
 
@@ -148,6 +205,9 @@ class UserPasswordCommandTest extends TestCase
         $command = new UserPasswordCommand();
         $command->setContainer($container);
         $command->setApplication(new Application());
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The password must be at least 16 characters long.');
 
         (new CommandTester($command))
             ->execute(
@@ -162,20 +222,19 @@ class UserPasswordCommandTest extends TestCase
 
     /**
      * Tests an invalid username.
-     *
-     * @expectedException \Symfony\Component\Console\Exception\InvalidArgumentException
-     * @expectedExceptionMessage foobar
-     * @expectedExceptionMessage not found
      */
     public function testDatabaseUserNotFound()
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject $connection */
         $connection = $this->container->get('database_connection');
+
         $connection
             ->expects($this->once())
             ->method('update')
             ->willReturn(0)
         ;
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid username: foobar');
 
         (new CommandTester($this->command))
             ->execute(
@@ -198,7 +257,6 @@ class UserPasswordCommandTest extends TestCase
      */
     public function testDatabaseUpdate($username, $password)
     {
-        /** @var \PHPUnit_Framework_MockObject_MockObject $connection */
         $connection = $this->container->get('database_connection');
 
         $connection
@@ -249,10 +307,13 @@ class UserPasswordCommandTest extends TestCase
      */
     protected function mockEncryptionAdapter()
     {
-        $encryption = $this->getMock('Contao\CoreBundle\Framework\Adapter', ['hash'], ['Contao\Encryption']);
+        $encryption = $this
+            ->getMockBuilder(Adapter::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['hash'])
+            ->getMock();
 
         $encryption
-            ->expects($this->any())
             ->method('hash')
             ->willReturnCallback(
                 function ($password) {

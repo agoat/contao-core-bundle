@@ -205,6 +205,26 @@
         <source>The file &quot;%s&quot; already exists!</source>
         <target>Bestand &quot;%s&quot; bestaat al!</target>
       </trans-unit>
+      <trans-unit id="ERR.filesOnly">
+        <source>You can only select files!</source>
+        <target>U kunt alleen bestanden selecteren!</target>
+      </trans-unit>
+      <trans-unit id="ERR.foldersOnly">
+        <source>You can only select folders!</source>
+        <target>U kunt alleen mappen selecteren!</target>
+      </trans-unit>
+      <trans-unit id="ERR.pathOnly">
+        <source>You can only select files or folders within &quot;%s&quot;!</source>
+        <target>U kunt alleen bestanden of mappen binnen &quot;%s&quot; selecteren!</target>
+      </trans-unit>
+      <trans-unit id="ERR.extensionsOnly">
+        <source>You can only select &quot;%s&quot; files!</source>
+        <target>U kunt alleen &quot;%s&quot; bestanden selecteren!</target>
+      </trans-unit>
+      <trans-unit id="ERR.invalidPages">
+        <source>Your selection contains invalid page IDs!</source>
+        <target>Uw selectie bevat ongeldige pagina IDs!</target>
+      </trans-unit>
       <trans-unit id="ERR.circularReference">
         <source>Invalid redirect target (circular reference)!</source>
         <target>Ongeldige omleiding (kringverwijzing)!</target>
@@ -246,8 +266,8 @@
         <target>Bestand &quot;%s&quot; is niet beschikbaar als download!</target>
       </trans-unit>
       <trans-unit id="ERR.invalid">
-        <source>Invalid option: %s</source>
-        <target>Ongeldige optie: %s</target>
+        <source>Invalid option value!</source>
+        <target>Ongeldige keuze optie!</target>
       </trans-unit>
       <trans-unit id="ERR.fileNotFoundSync">
         <source>No database entry found for %s. Please synchronize the file system.</source>
@@ -885,6 +905,14 @@
         <source>Delete the element</source>
         <target>Verwijder het element</target>
       </trans-unit>
+      <trans-unit id="MSC.ow_import.0">
+        <source>CSV import</source>
+        <target>CSV import</target>
+      </trans-unit>
+      <trans-unit id="MSC.ow_import.1">
+        <source>Import options from a CSV file</source>
+        <target>Importeer van een CSV bestand</target>
+      </trans-unit>
       <trans-unit id="MSC.tw_import.0">
         <source>CSV import</source>
         <target>CSV import</target>
@@ -1031,6 +1059,7 @@
       </trans-unit>
       <trans-unit id="MSC.sw_template">
         <source>Template</source>
+        <target>Template</target>
       </trans-unit>
       <trans-unit id="MSC.sw_position">
         <source>Position</source>
@@ -1250,6 +1279,7 @@
       </trans-unit>
       <trans-unit id="MSC.move">
         <source>Move the item via drag and drop or the up and down keys</source>
+        <target>Het item verplaatsen met drag en drop of met omhoog en omlaag toetsen</target>
       </trans-unit>
       <trans-unit id="MSC.move_up.0">
         <source>Move up</source>
@@ -1355,6 +1385,7 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       </trans-unit>
       <trans-unit id="MSC.feUser">
         <source>Member</source>
+        <target>Lid</target>
       </trans-unit>
       <trans-unit id="MSC.backToTop">
         <source>Back to top</source>
@@ -1374,6 +1405,11 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       </trans-unit>
       <trans-unit id="MSC.burgerTitle">
         <source>Toggle navigation</source>
+        <target>Navigatie omschakelen</target>
+      </trans-unit>
+      <trans-unit id="MSC.learnMore">
+        <source>Learn more on %s</source>
+        <target>Kom meer te weten op %s</target>
       </trans-unit>
       <trans-unit id="MSC.user">
         <source>User</source>
@@ -1489,6 +1525,7 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       </trans-unit>
       <trans-unit id="MSC.saveNduplicate">
         <source>Save and duplicate</source>
+        <target>Opslaan en kopiëren</target>
       </trans-unit>
       <trans-unit id="MSC.continue">
         <source>Continue</source>
@@ -1658,6 +1695,10 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
         <source>Relative path</source>
         <target>Relatief pad</target>
       </trans-unit>
+      <trans-unit id="MSC.fileMeta">
+        <source>Meta data</source>
+        <target>Meta informatie</target>
+      </trans-unit>
       <trans-unit id="MSC.version">
         <source>Version</source>
         <target>Versie</target>
@@ -1681,10 +1722,6 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       <trans-unit id="MSC.maintenanceEnabled">
         <source>The maintenance mode is currently enabled.</source>
         <target>Onderhoudsmodus is momenteel ingeschakeld.</target>
-      </trans-unit>
-      <trans-unit id="MSC.maintenanceDisabled">
-        <source>The maintenance mode is currently disabled.</source>
-        <target>Onderhoudsmodus is momenteel uitgeschakeld.</target>
       </trans-unit>
       <trans-unit id="MSC.wordWrap">
         <source>Word wrap</source>
@@ -1743,20 +1780,24 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
         <target>Selectie resetten</target>
       </trans-unit>
       <trans-unit id="MSC.filePicker">
-        <source>Switch to file picker</source>
-        <target>Schakelen naar de bestandskiezer</target>
+        <source>Files</source>
+        <target>Bestanden</target>
       </trans-unit>
       <trans-unit id="MSC.pagePicker">
-        <source>Switch to page picker</source>
-        <target>Schakelen naar de paginakiezer</target>
+        <source>Pages</source>
+        <target>Pagina's</target>
+      </trans-unit>
+      <trans-unit id="MSC.articlePicker">
+        <source>Articles</source>
+        <target>Artikelen</target>
       </trans-unit>
       <trans-unit id="MSC.fileManager">
-        <source>Open the file manager</source>
-        <target>Open bestandsbeheer</target>
+        <source>File manager</source>
+        <target>Bestandsbeheer</target>
       </trans-unit>
       <trans-unit id="MSC.pageManager">
-        <source>Modify the site structure</source>
-        <target>Aanpassen van de site-structuur</target>
+        <source>Site structure</source>
+        <target>Site-structuur</target>
       </trans-unit>
       <trans-unit id="MSC.filePickerHome">
         <source>Back to the file picker</source>
@@ -1765,10 +1806,6 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       <trans-unit id="MSC.pagePickerHome">
         <source>Back to the page picker</source>
         <target>Terug naar de paginakiezer</target>
-      </trans-unit>
-      <trans-unit id="MSC.pickerNoSelection">
-        <source>Please go back to the page or file picker and make a selection before you close the dialog.</source>
-        <target>Ga terug naar de pagina of bestandkiezer en maak een selectie voordat u het dialoogvenster sluit.</target>
       </trans-unit>
       <trans-unit id="MSC.systemMessages">
         <source>Notifications</source>
@@ -1864,6 +1901,7 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       </trans-unit>
       <trans-unit id="MSC.jsDisabled">
         <source>It seems that you have disabled JavaScript in your browser. The Contao back end will not work properly without JavaScript.</source>
+        <target>Het lijkt erop dat JavaScript staat uitgeschakeld in uw browser. Het Contao back end zal niet goed werken zonder JavaScript. </target>
       </trans-unit>
       <trans-unit id="MSC.copyOf">
         <source>%s (copy)</source>
@@ -2217,6 +2255,18 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
         <source>Invalid token</source>
         <target>Ongeldig token</target>
       </trans-unit>
+      <trans-unit id="MSC.versionConflict">
+        <source>Version conflict</source>
+        <target>Versie conflict</target>
+      </trans-unit>
+      <trans-unit id="MSC.versionConflict1">
+        <source>Another user has created version %s while you were editing version %s of this record.</source>
+        <target>Een andere gebruiker heeft versie %s gemaakt terwijl u versie %s van dit record bewerkt.</target>
+      </trans-unit>
+      <trans-unit id="MSC.versionConflict2">
+        <source>Your changes have been now been saved as version %s and have potentially overwritten the changes of version %s, therefore please compare the versions below:</source>
+        <target>Uw wijzigingen zijn opgeslagen als versie %sen hebben mogelijk de wijzigingen van versie %soverschreven. Vergelijk daarom onderstaande versies:</target>
+      </trans-unit>
       <trans-unit id="MSC.dragItemsHint">
         <source>Drag the items to re-order them</source>
         <target>U kunt items anders rangschikken door ze te slepen</target>
@@ -2234,7 +2284,7 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
         <target>Download %s</target>
       </trans-unit>
       <trans-unit id="MSC.metaNoLanguages">
-        <source>You have to add a root page in the site structure to store file meta information.</source>
+        <source>You have to add a root page in the site structure to enter file meta data.</source>
         <target>U dient een startpagina toe te voegen aan de site-structuur om meta-informatie op te kunnen slaan.</target>
       </trans-unit>
       <trans-unit id="UNITS.0">
@@ -2355,6 +2405,7 @@ Deze e-mail is aangemaakt door Contao. U kunt niet rechtstreeks hierop antwoorde
       </trans-unit>
       <trans-unit id="SECTIONS.manual">
         <source>Manual output</source>
+        <target>Handmatige uitvoer</target>
       </trans-unit>
     </body>
   </file>

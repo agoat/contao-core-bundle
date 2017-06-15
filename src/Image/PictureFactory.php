@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -11,8 +11,6 @@
 namespace Contao\CoreBundle\Image;
 
 use Contao\CoreBundle\Framework\ContaoFrameworkInterface;
-use Contao\ImageSizeItemModel;
-use Contao\ImageSizeModel;
 use Contao\Image\ImageInterface;
 use Contao\Image\Picture;
 use Contao\Image\PictureConfiguration;
@@ -23,6 +21,8 @@ use Contao\Image\PictureInterface;
 use Contao\Image\ResizeConfiguration;
 use Contao\Image\ResizeConfigurationInterface;
 use Contao\Image\ResizeOptions;
+use Contao\ImageSizeItemModel;
+use Contao\ImageSizeModel;
 
 /**
  * Creates Picture objects.

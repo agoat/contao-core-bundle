@@ -49,14 +49,6 @@
         <source>Please select the server time zone.</source>
         <target>Selecteer de server tijdzone.</target>
       </trans-unit>
-      <trans-unit id="tl_settings.websitePath.0">
-        <source>Relative path to the Contao directory</source>
-        <target>Relatief pad naar Contao directory</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.websitePath.1">
-        <source>The relative path to the Contao directory is usually set automatically by the install tool.</source>
-        <target>Het relatieve pad naar de Contao directory wordt gewoonlijk automatisch aangemaakt door het installatie tool.</target>
-      </trans-unit>
       <trans-unit id="tl_settings.characterSet.0">
         <source>Character set</source>
         <target>Karakterset</target>
@@ -70,8 +62,8 @@
         <target>Uitschakelen van de commando scheduler</target>
       </trans-unit>
       <trans-unit id="tl_settings.disableCron.1">
-        <source>Disable the periodic command scheduler and execute the cron.php script by a real cron job (which you have to set up manually).</source>
-        <target>Schakel de periodieke commando scheduler uit en voer het cron.php script uit door een echte cron job (deze dient u handmatig in te stellen).</target>
+        <source>Disable the periodic command scheduler and trigger the &lt;em&gt;_contao/cron&lt;/em&gt; route by a real cron job (which you have to set up manually).</source>
+        <target>Schakel de periodieke commando scheduler uit en voer het &lt;em&gt;_contao/cron&lt;/em&gt; script uit door een echte cron job (deze dient u handmatig in te stellen).</target>
       </trans-unit>
       <trans-unit id="tl_settings.minifyMarkup.0">
         <source>Minify the markup</source>
@@ -397,10 +389,6 @@
         <source>Search engine settings</source>
         <target>Zoekmachine instellingen</target>
       </trans-unit>
-      <trans-unit id="tl_settings.modules_legend">
-        <source>Inactive extensions</source>
-        <target>Inactieve extensies</target>
-      </trans-unit>
       <trans-unit id="tl_settings.timeout_legend">
         <source>Timeout values</source>
         <target>Timeout waarden</target>
@@ -409,29 +397,9 @@
         <source>Default access rights</source>
         <target>Standaard toegangsrechten</target>
       </trans-unit>
-      <trans-unit id="tl_settings.static_legend">
-        <source>Static resources</source>
-        <target>Statische hulpbronnen</target>
-      </trans-unit>
       <trans-unit id="tl_settings.edit">
         <source>Edit the local configuration</source>
         <target>Wijzig lokale configuratie</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.both">
-        <source>Use the server and the browser cache</source>
-        <target>Gebruik de cache van server en browser</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.server">
-        <source>Use only the server cache</source>
-        <target>Gebruik alleen de server cache</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.browser">
-        <source>Use only the browser cache</source>
-        <target>Gebruik alleen de browser cache</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.none">
-        <source>Disable caching</source>
-        <target>Caching uitschakelen</target>
       </trans-unit>
     </body>
   </file>

@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -101,7 +101,7 @@ class FilesModel extends \Model
 	 * @param mixed $varValue   The value
 	 * @param array $arrOptions An optional options array
 	 *
-	 * @return FilesModel|null The model or null if there is no file
+	 * @return FilesModel|Model|null The model or null if there is no file
 	 */
 	public static function findByPk($varValue, array $arrOptions=array())
 	{

@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -164,7 +164,7 @@ $GLOBALS['TL_DCA']['tl_page'] = array
 		'regular'                     => '{title_legend},title,alias,type;{meta_legend},pageTitle,robots,description;{protected_legend:hide},protected;{layout_legend:hide},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{search_legend},noSearch;{expert_legend:hide},cssClass,sitemap,hide,guests;{tabnav_legend:hide},tabindex,accesskey;{publish_legend},published',
 		'forward'                     => '{title_legend},title,alias,type;{meta_legend},pageTitle;{redirect_legend},redirect,jumpTo;{protected_legend:hide},protected;{layout_legend:hide},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{expert_legend:hide},cssClass,sitemap,hide,guests;{tabnav_legend:hide},tabindex,accesskey;{publish_legend},published',
 		'redirect'                    => '{title_legend},title,alias,type;{meta_legend},pageTitle;{redirect_legend},redirect,url,target;{protected_legend:hide},protected;{layout_legend:hide},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{expert_legend:hide},cssClass,sitemap,hide,guests;{tabnav_legend:hide},tabindex,accesskey;{publish_legend},published',
-		'root'                        => '{title_legend},title,alias,type;{meta_legend},pageTitle;{dns_legend},dns,useSSL,staticFiles,staticPlugins,language,fallback;{global_legend:hide},dateFormat,timeFormat,datimFormat,adminEmail;{sitemap_legend:hide},createSitemap;{protected_legend:hide},protected;{layout_legend},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{publish_legend},published',
+		'root'                        => '{title_legend},title,alias,type;{meta_legend},pageTitle;{dns_legend},dns,useSSL,language,fallback,staticFiles,staticPlugins;{global_legend:hide},dateFormat,timeFormat,datimFormat,adminEmail;{sitemap_legend:hide},createSitemap;{protected_legend:hide},protected;{layout_legend},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{publish_legend},published',
 		'logout'                      => '{title_legend},title,alias,type;{forward_legend},jumpTo,redirectBack;{protected_legend:hide},protected;{chmod_legend:hide},includeChmod;{expert_legend:hide},hide;;{publish_legend},published',
 		'error_403'                   => '{title_legend},title,alias,type;{meta_legend},pageTitle,robots,description;{forward_legend},autoforward;{layout_legend:hide},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{expert_legend:hide},cssClass;{publish_legend},published',
 		'error_404'                   => '{title_legend},title,alias,type;{meta_legend},pageTitle,robots,description;{forward_legend},autoforward;{layout_legend:hide},includeLayout;{cache_legend:hide},includeCache;{chmod_legend:hide},includeChmod;{expert_legend:hide},cssClass;{publish_legend},published'
@@ -1305,7 +1305,7 @@ class tl_page extends Backend
 	 *
 	 * @param DataContainer $dc
 	 *
-	 * @return string
+	 * @return array
 	 */
 	public function getPageTypes(DataContainer $dc)
 	{
@@ -1744,12 +1744,40 @@ class tl_page extends Backend
 			$dc->id = $intId; // see #8043
 		}
 
-		$this->checkPermission();
+		// Trigger the onload_callback
+		if (is_array($GLOBALS['TL_DCA']['tl_page']['config']['onload_callback']))
+		{
+			foreach ($GLOBALS['TL_DCA']['tl_page']['config']['onload_callback'] as $callback)
+			{
+				if (is_array($callback))
+				{
+					$this->import($callback[0]);
+					$this->{$callback[0]}->{$callback[1]}($dc);
+				}
+				elseif (is_callable($callback))
+				{
+					$callback($dc);
+				}
+			}
+		}
 
 		// Check the field access
 		if (!$this->User->hasAccess('tl_page::published', 'alexf'))
 		{
 			throw new Contao\CoreBundle\Exception\AccessDeniedException('Not enough permissions to publish/unpublish page ID ' . $intId . '.');
+		}
+
+		// Set the current record
+		if ($dc)
+		{
+			$objRow = $this->Database->prepare("SELECT * FROM tl_page WHERE id=?")
+									 ->limit(1)
+									 ->execute($intId);
+
+			if ($objRow->numRows)
+			{
+				$dc->activeRecord = $objRow;
+			}
 		}
 
 		$objVersions = new Versions('tl_page', $intId);
@@ -1763,18 +1791,43 @@ class tl_page extends Backend
 				if (is_array($callback))
 				{
 					$this->import($callback[0]);
-					$blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, ($dc ?: $this));
+					$blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, $dc);
 				}
 				elseif (is_callable($callback))
 				{
-					$blnVisible = $callback($blnVisible, ($dc ?: $this));
+					$blnVisible = $callback($blnVisible, $dc);
 				}
 			}
 		}
 
+		$time = time();
+
 		// Update the database
-		$this->Database->prepare("UPDATE tl_page SET tstamp=". time() .", published='" . ($blnVisible ? '1' : '') . "' WHERE id=?")
+		$this->Database->prepare("UPDATE tl_page SET tstamp=$time, published='" . ($blnVisible ? '1' : '') . "' WHERE id=?")
 					   ->execute($intId);
+
+		if ($dc)
+		{
+			$dc->activeRecord->time = $time;
+			$dc->activeRecord->published = ($blnVisible ? '1' : '');
+		}
+
+		// Trigger the onsubmit_callback
+		if (is_array($GLOBALS['TL_DCA']['tl_page']['config']['onsubmit_callback']))
+		{
+			foreach ($GLOBALS['TL_DCA']['tl_page']['config']['onsubmit_callback'] as $callback)
+			{
+				if (is_array($callback))
+				{
+					$this->import($callback[0]);
+					$this->{$callback[0]}->{$callback[1]}($dc);
+				}
+				elseif (is_callable($callback))
+				{
+					$callback($dc);
+				}
+			}
+		}
 
 		$objVersions->create();
 	}

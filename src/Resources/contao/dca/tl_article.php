@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -32,6 +32,7 @@ $GLOBALS['TL_DCA']['tl_article'] = array
 		'onload_callback' => array
 		(
 			array('tl_article', 'checkPermission'),
+			array('tl_article', 'addCustomLayoutSectionReferences'),
 			array('tl_page', 'addBreadcrumb')
 		),
 		'sql' => array
@@ -682,14 +683,16 @@ class tl_article extends Backend
 				{
 					foreach ($arrCustom as $v)
 					{
-						$arrSections[] = $v['id'];
-						$GLOBALS['TL_LANG']['COLS'][$v['id']] = $v['title'];
+						if (!empty($v['id']))
+						{
+							$arrSections[] = $v['id'];
+						}
 					}
 				}
 			}
 		}
 
-		return array_values(array_unique($arrSections));
+		return Backend::convertLayoutSectionIdsToAssociativeArray($arrSections);
 	}
 
 
@@ -983,12 +986,40 @@ class tl_article extends Backend
 			$dc->id = $intId; // see #8043
 		}
 
-		$this->checkPermission();
+		// Trigger the onload_callback
+		if (is_array($GLOBALS['TL_DCA']['tl_article']['config']['onload_callback']))
+		{
+			foreach ($GLOBALS['TL_DCA']['tl_article']['config']['onload_callback'] as $callback)
+			{
+				if (is_array($callback))
+				{
+					$this->import($callback[0]);
+					$this->{$callback[0]}->{$callback[1]}($dc);
+				}
+				elseif (is_callable($callback))
+				{
+					$callback($dc);
+				}
+			}
+		}
 
 		// Check the field access
 		if (!$this->User->hasAccess('tl_article::published', 'alexf'))
 		{
 			throw new Contao\CoreBundle\Exception\AccessDeniedException('Not enough permissions to publish/unpublish article ID "' . $intId . '".');
+		}
+
+		// Set the current record
+		if ($dc)
+		{
+			$objRow = $this->Database->prepare("SELECT * FROM tl_article WHERE id=?")
+									 ->limit(1)
+									 ->execute($intId);
+
+			if ($objRow->numRows)
+			{
+				$dc->activeRecord = $objRow;
+			}
 		}
 
 		$objVersions = new Versions('tl_article', $intId);
@@ -1002,18 +1033,43 @@ class tl_article extends Backend
 				if (is_array($callback))
 				{
 					$this->import($callback[0]);
-					$blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, ($dc ?: $this));
+					$blnVisible = $this->{$callback[0]}->{$callback[1]}($blnVisible, $dc);
 				}
 				elseif (is_callable($callback))
 				{
-					$blnVisible = $callback($blnVisible, ($dc ?: $this));
+					$blnVisible = $callback($blnVisible, $dc);
 				}
 			}
 		}
 
+		$time = time();
+
 		// Update the database
-		$this->Database->prepare("UPDATE tl_article SET tstamp=". time() .", published='" . ($blnVisible ? '1' : '') . "' WHERE id=?")
+		$this->Database->prepare("UPDATE tl_article SET tstamp=$time, published='" . ($blnVisible ? '1' : '') . "' WHERE id=?")
 					   ->execute($intId);
+
+		if ($dc)
+		{
+			$dc->activeRecord->time = $time;
+			$dc->activeRecord->published = ($blnVisible ? '1' : '');
+		}
+
+		// Trigger the onsubmit_callback
+		if (is_array($GLOBALS['TL_DCA']['tl_article']['config']['onsubmit_callback']))
+		{
+			foreach ($GLOBALS['TL_DCA']['tl_article']['config']['onsubmit_callback'] as $callback)
+			{
+				if (is_array($callback))
+				{
+					$this->import($callback[0]);
+					$this->{$callback[0]}->{$callback[1]}($dc);
+				}
+				elseif (is_callable($callback))
+				{
+					$callback($dc);
+				}
+			}
+		}
 
 		$objVersions->create();
 	}

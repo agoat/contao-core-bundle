@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -176,7 +176,7 @@ class GdImage
 		}
 
 		// Get the relative path
-		$folder = str_replace(TL_ROOT . '/', '', $path);
+		$folder = \StringUtil::stripRootDir($path);
 
 		// Create the parent folder
 		if (($dirname = dirname($folder)) != '.' && !is_dir(TL_ROOT . '/' . $dirname))

@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -503,12 +503,13 @@ abstract class Controller extends \System
 	/**
 	 * Generate a form and return it as string
 	 *
-	 * @param mixed  $varId     A form ID or a Model object
-	 * @param string $strColumn The column the form is in
+	 * @param mixed   $varId      A form ID or a Model object
+	 * @param string  $strColumn  The column the form is in
+	 * @param boolean $blnModule  Render the form as module
 	 *
 	 * @return string The form HTML markup
 	 */
-	public static function getForm($varId, $strColumn='main')
+	public static function getForm($varId, $strColumn='main', $blnModule=false)
 	{
 		if (is_object($varId))
 		{
@@ -529,9 +530,20 @@ abstract class Controller extends \System
 			}
 		}
 
-		$objRow->typePrefix = 'ce_';
+		$strClass = $blnModule ? \Module::findClass('form') : \ContentElement::findClass('form');
+
+		if (!class_exists($strClass))
+		{
+			static::log('Form class "'.$strClass.'" does not exist', __METHOD__, TL_ERROR);
+
+			return '';
+		}
+
+		$objRow->typePrefix = $blnModule ? 'mod_' : 'ce_';
 		$objRow->form = $objRow->id;
-		$objElement = new \Form($objRow, $strColumn);
+
+		/** @var \Form $objElement */
+		$objElement = new $strClass($objRow, $strColumn);
 		$strBuffer = $objElement->generate();
 
 		// HOOK: add custom logic
@@ -975,7 +987,7 @@ abstract class Controller extends \System
 		$query = $query->without(array_merge(array('rt', 'ref'), $arrUnset));
 
 		// Merge the request string to be added
-		$query = $query->merge(new Query(str_replace('&amp;', '&', $strRequest)));
+		$query = $query->merge(str_replace('&amp;', '&', $strRequest));
 
 		// Add the referer ID
 		if (isset($_GET['ref']) || ($strRequest != '' && $blnAddRef))
@@ -983,7 +995,15 @@ abstract class Controller extends \System
 			$query = $query->merge('ref=' . TL_REFERER_ID);
 		}
 
-		return TL_SCRIPT . $query->getUriComponent();
+		$uri = $query->getUriComponent();
+
+		// The query parser automatically converts %2B to +, so re-convert it here
+		if (strpos($strRequest, '%2B') !== false)
+		{
+			$uri = str_replace('+', '%2B', $uri);
+		}
+
+		return TL_SCRIPT . ampersand($uri);
 	}
 
 
@@ -992,20 +1012,7 @@ abstract class Controller extends \System
 	 */
 	public static function reload()
 	{
-		if (headers_sent())
-		{
-			exit;
-		}
-
-		$strLocation = \Environment::get('uri');
-
-		// Ajax request
-		if (\Environment::get('isAjaxRequest'))
-		{
-			throw new AjaxRedirectResponseException($strLocation);
-		}
-
-		throw new RedirectResponseException($strLocation);
+		static::redirect(\Environment::get('uri'));
 	}
 
 
@@ -1040,6 +1047,7 @@ abstract class Controller extends \System
 		throw new RedirectResponseException($strLocation, $intStatus);
 	}
 
+
 	/**
 	 * Replace the old back end paths
 	 *
@@ -1071,6 +1079,7 @@ abstract class Controller extends \System
 
 		return str_replace(array_keys($arrMapper), array_values($arrMapper), $strContext);
 	}
+
 
 	/**
 	 * Generate a front end URL
@@ -1279,12 +1288,12 @@ abstract class Controller extends \System
 	 * Redirect to a front end page
 	 *
 	 * @param integer $intPage    The page ID
-	 * @param mixed   $varArticle An optional article alias
+	 * @param string  $strArticle An optional article alias
 	 * @param boolean $blnReturn  If true, return the URL and don't redirect
 	 *
 	 * @return string The URL of the target page
 	 */
-	protected function redirectToFrontendPage($intPage, $varArticle=null, $blnReturn=false)
+	protected function redirectToFrontendPage($intPage, $strArticle=null, $blnReturn=false)
 	{
 		if (($intPage = intval($intPage)) <= 0)
 		{
@@ -1293,12 +1302,20 @@ abstract class Controller extends \System
 
 		$objPage = \PageModel::findWithDetails($intPage);
 
-		if ($varArticle !== null)
+		if ($objPage === null)
 		{
-			$varArticle = '/articles/' . $varArticle;
+			return '';
 		}
 
-		$strUrl = $objPage->getFrontendUrl($varArticle);
+		$strParams = null;
+
+		// Add the /article/ fragment (see #673)
+		if ($strArticle !== null && ($objArticle = \ArticleModel::findByAlias($strArticle)) !== null)
+		{
+			$strParams = '/articles/' . (($objArticle->inColumn != 'main') ? $objArticle->inColumn . ':' : '') . $strArticle;
+		}
+
+		$strUrl = $objPage->getFrontendUrl($strParams);
 
 		// Make sure the URL is absolute (see #4332)
 		if (strncmp($strUrl, 'http://', 7) !== 0 && strncmp($strUrl, 'https://', 8) !== 0)
@@ -1416,7 +1433,7 @@ abstract class Controller extends \System
 		}
 
 		// Thanks to Andreas Schempp (see #2475 and #3423)
-		$arrPages = array_intersect($this->Database->getChildRecords(0, $strTable, $blnSorting), $arrPages);
+		$arrPages = array_intersect($arrPages, $this->Database->getChildRecords(0, $strTable, $blnSorting));
 		$arrPages = array_values(array_diff($arrPages, $this->Database->getChildRecords($arrPages, $strTable, $blnSorting)));
 
 		return $arrPages;
@@ -1426,12 +1443,13 @@ abstract class Controller extends \System
 	/**
 	 * Add an image to a template
 	 *
-	 * @param object  $objTemplate   The template object to add the image to
-	 * @param array   $arrItem       The element or module as array
-	 * @param integer $intMaxWidth   An optional maximum width of the image
-	 * @param string  $strLightboxId An optional lightbox ID
+	 * @param object     $objTemplate   The template object to add the image to
+	 * @param array      $arrItem       The element or module as array
+	 * @param integer    $intMaxWidth   An optional maximum width of the image
+	 * @param string     $strLightboxId An optional lightbox ID
+	 * @param FilesModel $objModel      An optional files model
 	 */
-	public static function addImageToTemplate($objTemplate, $arrItem, $intMaxWidth=null, $strLightboxId=null)
+	public static function addImageToTemplate($objTemplate, $arrItem, $intMaxWidth=null, $strLightboxId=null, FilesModel $objModel=null)
 	{
 		try
 		{
@@ -1474,7 +1492,7 @@ abstract class Controller extends \System
 			// Subtract the margins before deciding whether to resize (see #6018)
 			if (is_array($arrMargin) && $arrMargin['unit'] == 'px')
 			{
-				$intMargin = $arrMargin['left'] + $arrMargin['right'];
+				$intMargin = (int) $arrMargin['left'] + (int) $arrMargin['right'];
 
 				// Reset the margin if it exceeds the maximum width (see #7245)
 				if ($intMaxWidth - $intMargin < 1)
@@ -1488,10 +1506,10 @@ abstract class Controller extends \System
 				}
 			}
 
-			if ($size[0] > $intMaxWidth || (!$size[0] && !$size[1] && $imgSize[0] > $intMaxWidth))
+			if ($size[0] > $intMaxWidth || (!$size[0] && !$size[1] && (!$imgSize[0] || $imgSize[0] > $intMaxWidth)))
 			{
 				// See #2268 (thanks to Thyon)
-				$ratio = ($size[0] && $size[1]) ? $size[1] / $size[0] : $imgSize[1] / $imgSize[0];
+				$ratio = ($size[0] && $size[1]) ? $size[1] / $size[0] : (($imgSize[0] && $imgSize[1]) ? $imgSize[1] / $imgSize[0] : 0);
 
 				$size[0] = $intMaxWidth;
 				$size[1] = floor($intMaxWidth * $ratio);
@@ -1511,8 +1529,8 @@ abstract class Controller extends \System
 
 			$picture = array
 			(
-				'img' => $picture->getImg(TL_ROOT),
-				'sources' => $picture->getSources(TL_ROOT)
+				'img' => $picture->getImg(TL_ROOT, TL_FILES_URL),
+				'sources' => $picture->getSources(TL_ROOT, TL_FILES_URL)
 			);
 
 			if ($src !== $arrItem['singleSRC'])
@@ -1535,12 +1553,74 @@ abstract class Controller extends \System
 			$objTemplate->imgSize = ' width="' . $imgSize[0] . '" height="' . $imgSize[1] . '"';
 		}
 
+		$arrMeta = array();
+
+		// Load the meta data
+		if ($objModel instanceof FilesModel)
+		{
+			if (TL_MODE == 'FE')
+			{
+				global $objPage;
+
+				$arrMeta = \Frontend::getMetaData($objModel->meta, $objPage->language);
+
+				if (empty($arrMeta) && $objPage->rootFallbackLanguage !== null)
+				{
+					$arrMeta = \Frontend::getMetaData($objModel->meta, $objPage->rootFallbackLanguage);
+				}
+			}
+			else
+			{
+				$arrMeta = \Frontend::getMetaData($objModel->meta, $GLOBALS['TL_LANGUAGE']);
+			}
+
+			\Controller::loadDataContainer('tl_files');
+
+			// Add any missing fields
+			foreach (array_keys($GLOBALS['TL_DCA']['tl_files']['fields']['meta']['eval']['metaFields']) as $k)
+			{
+				if (!isset($arrMeta[$k]))
+				{
+					$arrMeta[$k] = '';
+				}
+			}
+
+			$arrMeta['imageTitle'] = $arrMeta['title'];
+			$arrMeta['imageUrl'] = $arrMeta['link'];
+			unset($arrMeta['title'], $arrMeta['link']);
+
+			// Add the meta data to the item
+			if (!$arrItem['overwriteMeta'])
+			{
+				foreach ($arrMeta as $k=>$v)
+				{
+					switch ($k)
+					{
+						case 'alt':
+						case 'imageTitle':
+							$arrItem[$k] = \StringUtil::specialchars($v);
+							break;
+
+						default:
+							$arrItem[$k] = $v;
+							break;
+					}
+				}
+			}
+		}
+
 		$picture['alt'] = \StringUtil::specialchars($arrItem['alt']);
 
-		// Only add the title if the image is not part of an image link
-		if (empty($arrItem['imageUrl']) && empty($arrItem['fullsize']))
+		// Move the title to the link tag so it is shown in the lightbox
+		if ($arrItem['fullsize'] && $arrItem['imageTitle'] && !$arrItem['linkTitle'])
 		{
-			$picture['title'] = \StringUtil::specialchars($arrItem['title']);
+			$arrItem['linkTitle'] = $arrItem['imageTitle'];
+			unset($arrItem['imageTitle']);
+		}
+
+		if (isset($arrItem['imageTitle']))
+		{
+			$picture['title'] = \StringUtil::specialchars($arrItem['imageTitle']);
 		}
 
 		$objTemplate->picture = $picture;
@@ -1593,16 +1673,19 @@ abstract class Controller extends \System
 			$objTemplate->attributes = ' data-lightbox="' . substr($strLightboxId, 9, -1) . '"';
 		}
 
+		// Add the meta data to the template
+		foreach (array_keys($arrMeta) as $k)
+		{
+			$objTemplate->$k = $arrItem[$k];
+		}
+
 		// Do not urlEncode() here because getImage() already does (see #3817)
 		$objTemplate->src = TL_FILES_URL . $src;
-		$objTemplate->alt = \StringUtil::specialchars($arrItem['alt']);
-		$objTemplate->title = \StringUtil::specialchars($arrItem['title']);
-		$objTemplate->linkTitle = \StringUtil::specialchars($arrItem['linkTitle'] ?: $arrItem['title']);
+		$objTemplate->singleSRC = $arrItem['singleSRC'];
+		$objTemplate->linkTitle = $arrItem['linkTitle'] ?: $arrItem['title'];
 		$objTemplate->fullsize = $arrItem['fullsize'] ? true : false;
 		$objTemplate->addBefore = ($arrItem['floating'] != 'below');
 		$objTemplate->margin = static::generateMargin($arrMargin);
-		$objTemplate->caption = $arrItem['caption'];
-		$objTemplate->singleSRC = $arrItem['singleSRC'];
 		$objTemplate->addImage = true;
 	}
 
@@ -1885,8 +1968,6 @@ abstract class Controller extends \System
 	 * Remove old XML files from the share directory
 	 *
 	 * @param boolean $blnReturn If true, only return the finds and don't delete
-	 *
-	 * @return array An array of old XML files
 	 *
 	 * @deprecated Deprecated since Contao 4.0, to be removed in Contao 5.0.
 	 *             Use Automator::purgeXmlFiles() instead.

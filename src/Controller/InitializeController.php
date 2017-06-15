@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -14,6 +14,7 @@ use Contao\CoreBundle\ContaoCoreBundle;
 use Contao\CoreBundle\Response\InitializeControllerResponse;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -57,7 +58,7 @@ class InitializeController extends Controller
         // Initialize the framework with the real request
         $this->get('request_stack')->push($realRequest);
 
-        if (method_exists('Symfony\Component\DependencyInjection\Container', 'enterScope')) {
+        if (method_exists(Container::class, 'enterScope')) {
             $this->container->enterScope($scope);
         }
 

@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -173,6 +173,14 @@ class FrontendTemplate extends \Template
 		if ($template === null)
 		{
 			$template = 'block_section';
+
+			foreach ($this->positions as $position)
+			{
+				if (isset($position[$key]['template']))
+				{
+					$template = $position[$key]['template'];
+				}
+			}
 		}
 
 		include $this->getTemplate($template, $this->strFormat);
@@ -358,14 +366,18 @@ class FrontendTemplate extends \Template
 		/** @var $objPage \PageModel */
 		global $objPage;
 
-		if ($objPage->cache === false && $objPage->clientCache === false)
+		if (($objPage->cache === false || $objPage->cache === 0) && ($objPage->clientCache === false || $objPage->clientCache === 0))
 		{
 			return $response->setPrivate();
 		}
 
-		// Do not cache the response if a user is logged in or the page is protected or uses a mobile layout
-		// TODO: Add support for proxies so they can vary on member context and page layout
-		if (FE_USER_LOGGED_IN === true || BE_USER_LOGGED_IN === true || $objPage->isMobile || $objPage->protected || $this->hasAuthenticatedBackendUser())
+		// Vary on page layout
+		$response->setVary(array('Contao-Page-Layout'), false);
+		$response->headers->set('Contao-Page-Layout', $objPage->isMobile ? 'mobile' : 'desktop');
+
+		// Do not cache the response if a user is logged in or the page is protected
+		// TODO: Add support for proxies so they can vary on member context
+		if (FE_USER_LOGGED_IN === true || BE_USER_LOGGED_IN === true || $objPage->protected || $this->hasAuthenticatedBackendUser())
 		{
 			return $response->setPrivate();
 		}

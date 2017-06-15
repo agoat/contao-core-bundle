@@ -3,7 +3,7 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -24,7 +24,7 @@ interface ImageFactoryInterface
     /**
      * Creates an Image object.
      *
-     * @param string|ImageInterface                       $path       The path to the source image or an Image object
+     * @param string|ImageInterface                       $path       The absolute path to the source image or an Image object
      * @param int|array|ResizeConfigurationInterface|null $size       An image size ID, an array with width, height and
      *                                                                resize mode or a ResizeConfiguration object
      * @param string|null                                 $targetPath

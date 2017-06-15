@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -124,7 +124,7 @@ class RebuildIndex extends \Backend implements \executable
 			// Display the pages
 			for ($i=0, $c=count($arrPages); $i<$c; $i++)
 			{
-				$strBuffer .= '<span class="page_url" data-url="' . $arrPages[$i] . '#' . $rand . $i . '">' . \StringUtil::substr($arrPages[$i], 100) . '</span><br>';
+				$strBuffer .= '<span class="page_url" data-url="' . $arrPages[$i] . '#' . $rand . $i . '">' . \StringUtil::specialchars(\StringUtil::substr(rawurldecode($arrPages[$i]), 100)) . '</span><br>';
 				unset($arrPages[$i]); // see #5681
 			}
 

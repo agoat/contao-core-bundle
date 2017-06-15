@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -13,6 +13,7 @@ namespace Contao;
 use Contao\CoreBundle\Exception\ResponseException;
 use Contao\Image\Image as ContaoImage;
 use Contao\Image\ImageDimensions;
+use Patchwork\Utf8;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
@@ -242,7 +243,14 @@ class File extends \System
 				break;
 
 			case 'dataUri':
-				return 'data:' . $this->mime . ';base64,' . base64_encode($this->getContent());
+				if ($this->extension == 'svgz')
+				{
+					return 'data:' . $this->mime . ';base64,' . base64_encode(gzdecode($this->getContent()));
+				}
+				else
+				{
+					return 'data:' . $this->mime . ';base64,' . base64_encode($this->getContent());
+				}
 				break;
 
 			case 'imageSize':
@@ -774,7 +782,7 @@ class File extends \System
 		(
 			ResponseHeaderBag::DISPOSITION_ATTACHMENT,
 			$filename,
-			$this->basename
+			Utf8::toAscii($this->basename)
 		);
 
 		$response->headers->addCacheControlDirective('must-revalidate');

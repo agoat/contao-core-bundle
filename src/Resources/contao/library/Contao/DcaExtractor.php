@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -397,6 +397,12 @@ class DcaExtractor extends \Controller
 
 		// Return if the DC type is "File"
 		if ($GLOBALS['TL_DCA'][$this->strTable]['config']['dataContainer'] == 'File')
+		{
+			return;
+		}
+
+		// Return if the DC type is "Folder" and the DC is not database assisted
+		if ($GLOBALS['TL_DCA'][$this->strTable]['config']['dataContainer'] == 'Folder' && empty($GLOBALS['TL_DCA'][$this->strTable]['config']['databaseAssisted']))
 		{
 			return;
 		}

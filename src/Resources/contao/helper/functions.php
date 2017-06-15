@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -29,7 +29,19 @@ function log_message($strMessage, $strLog=null)
 		$strLog = 'prod-' . date('Y-m-d') . '.log';
 	}
 
-	error_log(sprintf("[%s] %s\n", date('d-M-Y H:i:s'), $strMessage), 3, TL_ROOT . '/app/logs/' . $strLog);
+	$strLogsDir = null;
+
+	if (($container = System::getContainer()) !== null)
+	{
+		$strLogsDir = $container->getParameter('kernel.logs_dir');
+	}
+
+	if (!$strLogsDir)
+	{
+		$strLogsDir = TL_ROOT . '/var/logs';
+	}
+
+	error_log(sprintf("[%s] %s\n", date('d-M-Y H:i:s'), $strMessage), 3, $strLogsDir . '/' . $strLog);
 }
 
 
@@ -115,12 +127,11 @@ function standardize($strString, $blnPreserveUppercase=false)
 {
 	@trigger_error('Using standardize() has been deprecated and will no longer work in Contao 5.0. Use StringUtil::standardize() instead.', E_USER_DEPRECATED);
 
-	$arrSearch = array('/[^a-zA-Z0-9 \.\&\/_-]+/', '/[ \.\&\/-]+/');
+	$arrSearch = array('/[^\pN\pL \.\&\/_-]+/u', '/[ \.\&\/-]+/');
 	$arrReplace = array('', '-');
 
 	$strString = html_entity_decode($strString, ENT_QUOTES, $GLOBALS['TL_CONFIG']['characterSet']);
 	$strString = strip_insert_tags($strString);
-	$strString = Patchwork\Utf8::toAscii($strString);
 	$strString = preg_replace($arrSearch, $arrReplace, $strString);
 
 	if (is_numeric(substr($strString, 0, 1)))
@@ -130,7 +141,7 @@ function standardize($strString, $blnPreserveUppercase=false)
 
 	if (!$blnPreserveUppercase)
 	{
-		$strString = strtolower($strString);
+		$strString = Patchwork\Utf8::strtolower($strString);
 	}
 
 	return trim($strString, '-');

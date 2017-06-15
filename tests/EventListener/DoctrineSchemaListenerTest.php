@@ -3,22 +3,22 @@
 /*
  * This file is part of Contao.
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
 
-namespace Contao\CoreBundle\Test\Doctrine\Schema;
+namespace Contao\CoreBundle\Tests\Doctrine\Schema;
 
 use Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider;
 use Contao\CoreBundle\EventListener\DoctrineSchemaListener;
-use Contao\CoreBundle\Test\TestCase;
-use Contao\Database\Installer;
+use Contao\CoreBundle\Tests\DoctrineTestCase;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs;
 use Doctrine\DBAL\Platforms\MySqlPlatform;
 use Doctrine\DBAL\Platforms\PostgreSqlPlatform;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 
 /**
@@ -26,14 +26,14 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
  *
  * @author Andreas Schempp <https://github.com/aschempp>
  */
-class DoctrineSchemaListenerTest extends TestCase
+class DoctrineSchemaListenerTest extends DoctrineTestCase
 {
     /**
      * Tests the object instantiation.
      */
     public function testInstantiation()
     {
-        $provider = new DcaSchemaProvider($this->mockContainerWithContaoScopes());
+        $provider = $this->createMock(DcaSchemaProvider::class);
         $listener = new DoctrineSchemaListener($provider);
 
         $this->assertInstanceOf('Contao\CoreBundle\EventListener\DoctrineSchemaListener', $listener);
@@ -44,7 +44,7 @@ class DoctrineSchemaListenerTest extends TestCase
      */
     public function testPostGenerateSchema()
     {
-        $provider = $this->getProvider(
+        $framework = $this->mockContaoFrameworkWithInstaller(
             [
                 'tl_files' => [
                     'TABLE_FIELDS' => [
@@ -54,8 +54,13 @@ class DoctrineSchemaListenerTest extends TestCase
             ]
         );
 
+        $provider = new DcaSchemaProvider(
+            $framework,
+            $this->mockDoctrineRegistry()
+        );
+
         $schema = new Schema();
-        $event = new GenerateSchemaEventArgs($this->getMock('Doctrine\ORM\EntityManagerInterface'), $schema);
+        $event = new GenerateSchemaEventArgs($this->createMock(EntityManagerInterface::class), $schema);
 
         $this->assertFalse($schema->hasTable('tl_files'));
 
@@ -71,11 +76,9 @@ class DoctrineSchemaListenerTest extends TestCase
      */
     public function testOnSchemaIndexDefinitionWithSubpart()
     {
-        /** @var Connection|\PHPUnit_Framework_MockObject_MockObject $event */
-        $connection = $this->getMock('Doctrine\DBAL\Connection', ['getDatabasePlatform', 'fetchAssoc'], [], '', false);
+        $connection = $this->createMock(Connection::class);
 
         $connection
-            ->expects($this->any())
             ->method('getDatabasePlatform')
             ->willReturn(new MySqlPlatform())
         ;
@@ -104,28 +107,24 @@ class DoctrineSchemaListenerTest extends TestCase
         ;
 
         /** @var SchemaIndexDefinitionEventArgs|\PHPUnit_Framework_MockObject_MockObject $event */
-        $event = $this->getMock(
-            'Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs',
-            ['getConnection', 'getTable', 'getTableIndex', 'preventDefault'],
-            [],
-            '',
-            false
-        );
+        $event = $this
+            ->getMockBuilder(SchemaIndexDefinitionEventArgs::class)
+            ->disableOriginalConstructor()
+            ->setMethods(['getConnection', 'getTable', 'getTableIndex', 'preventDefault'])
+            ->getMock()
+        ;
 
         $event
-            ->expects($this->any())
             ->method('getConnection')
             ->willReturn($connection)
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTable')
             ->willReturn('tl_files')
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTableIndex')
             ->willReturn($this->getIndexEventArg('path'))
         ;
@@ -135,17 +134,14 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('preventDefault')
         ;
 
-        $listener = new DoctrineSchemaListener(
-            $this->getMock('Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider', [], [], '', false)
-        );
-
+        $listener = new DoctrineSchemaListener($this->createMock(DcaSchemaProvider::class));
         $listener->onSchemaIndexDefinition($event);
 
         $index = $event->getIndex();
 
         $this->assertInstanceOf('Doctrine\DBAL\Schema\Index', $index);
-        $this->assertEquals('path', $index->getName());
-        $this->assertEquals(['path(333)'], $index->getColumns());
+        $this->assertSame('path', $index->getName());
+        $this->assertSame(['path(333)'], $index->getColumns());
     }
 
     /**
@@ -153,17 +149,14 @@ class DoctrineSchemaListenerTest extends TestCase
      */
     public function testOnSchemaIndexDefinitionWithoutSubpart()
     {
-        /** @var Connection|\PHPUnit_Framework_MockObject_MockObject $event */
-        $connection = $this->getMock('Doctrine\DBAL\Connection', ['getDatabasePlatform', 'fetchAssoc'], [], '', false);
+        $connection = $this->createMock(Connection::class);
 
         $connection
-            ->expects($this->any())
             ->method('getDatabasePlatform')
             ->willReturn(new MySqlPlatform())
         ;
 
         $connection
-            ->expects($this->any())
             ->method('fetchAssoc')
             ->willReturn(
                 [
@@ -184,23 +177,19 @@ class DoctrineSchemaListenerTest extends TestCase
             )
         ;
 
-        /** @var SchemaIndexDefinitionEventArgs|\PHPUnit_Framework_MockObject_MockObject $event */
-        $event = $this->getMock('Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs', [], [], '', false);
+        $event = $this->createMock(SchemaIndexDefinitionEventArgs::class);
 
         $event
-            ->expects($this->any())
             ->method('getConnection')
             ->willReturn($connection)
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTable')
             ->willReturn('tl_member')
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTableIndex')
             ->willReturn($this->getIndexEventArg('username'))
         ;
@@ -210,10 +199,7 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('setIndex')
         ;
 
-        $listener = new DoctrineSchemaListener(
-            $this->getMock('Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider', [], [], '', false)
-        );
-
+        $listener = new DoctrineSchemaListener($this->createMock(DcaSchemaProvider::class));
         $listener->onSchemaIndexDefinition($event);
     }
 
@@ -222,11 +208,9 @@ class DoctrineSchemaListenerTest extends TestCase
      */
     public function testOnSchemaIndexDefinitionIgnoresPrimaryKey()
     {
-        /** @var Connection|\PHPUnit_Framework_MockObject_MockObject $event */
-        $connection = $this->getMock('Doctrine\DBAL\Connection', ['getDatabasePlatform', 'fetchAssoc'], [], '', false);
+        $connection = $this->createMock(Connection::class);
 
         $connection
-            ->expects($this->any())
             ->method('getDatabasePlatform')
             ->willReturn(new MySqlPlatform())
         ;
@@ -236,17 +220,14 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('fetchAssoc')
         ;
 
-        /** @var SchemaIndexDefinitionEventArgs|\PHPUnit_Framework_MockObject_MockObject $event */
-        $event = $this->getMock('Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs', [], [], '', false);
+        $event = $this->createMock(SchemaIndexDefinitionEventArgs::class);
 
         $event
-            ->expects($this->any())
             ->method('getConnection')
             ->willReturn($connection)
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTableIndex')
             ->willReturn($this->getIndexEventArg('PRIMARY'))
         ;
@@ -256,10 +237,7 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('setIndex')
         ;
 
-        $listener = new DoctrineSchemaListener(
-            $this->getMock('Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider', [], [], '', false)
-        );
-
+        $listener = new DoctrineSchemaListener($this->createMock(DcaSchemaProvider::class));
         $listener->onSchemaIndexDefinition($event);
     }
 
@@ -268,11 +246,9 @@ class DoctrineSchemaListenerTest extends TestCase
      */
     public function testOnSchemaIndexDefinitionIgnoresNonMySqlPlatform()
     {
-        /** @var Connection|\PHPUnit_Framework_MockObject_MockObject $event */
-        $connection = $this->getMock('Doctrine\DBAL\Connection', ['getDatabasePlatform', 'fetchAssoc'], [], '', false);
+        $connection = $this->createMock(Connection::class);
 
         $connection
-            ->expects($this->any())
             ->method('getDatabasePlatform')
             ->willReturn(new PostgreSqlPlatform())
         ;
@@ -282,17 +258,14 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('fetchAssoc')
         ;
 
-        /** @var SchemaIndexDefinitionEventArgs|\PHPUnit_Framework_MockObject_MockObject $event */
-        $event = $this->getMock('Doctrine\DBAL\Event\SchemaIndexDefinitionEventArgs', [], [], '', false);
+        $event = $this->createMock(SchemaIndexDefinitionEventArgs::class);
 
         $event
-            ->expects($this->any())
             ->method('getConnection')
             ->willReturn($connection)
         ;
 
         $event
-            ->expects($this->any())
             ->method('getTableIndex')
             ->willReturn($this->getIndexEventArg('pid'))
         ;
@@ -302,62 +275,8 @@ class DoctrineSchemaListenerTest extends TestCase
             ->method('setIndex')
         ;
 
-        $listener = new DoctrineSchemaListener(
-            $this->getMock('Contao\CoreBundle\Doctrine\Schema\DcaSchemaProvider', [], [], '', false)
-        );
-
+        $listener = new DoctrineSchemaListener($this->createMock(DcaSchemaProvider::class));
         $listener->onSchemaIndexDefinition($event);
-    }
-
-    /**
-     * Returns a DCA schema provider.
-     *
-     * @param array $dca
-     * @param array $file
-     *
-     * @return DcaSchemaProvider
-     */
-    protected function getProvider(array $dca = [], array $file = [])
-    {
-        /** @var Connection|\PHPUnit_Framework_MockObject_MockObject $event */
-        $connection = $this->getMock('Doctrine\DBAL\Connection', ['getDatabasePlatform'], [], '', false);
-
-        $connection
-            ->expects($this->any())
-            ->method('getDatabasePlatform')
-            ->willReturn(new MySqlPlatform())
-        ;
-
-        /** @var Installer|\PHPUnit_Framework_MockObject_MockObject $event */
-        $installer = $this->getMock('Contao\Database\Installer', ['getFromDca', 'getFromFile']);
-
-        $installer
-            ->expects($this->any())
-            ->method('getFromDca')
-            ->willReturn($dca)
-        ;
-
-        $installer
-            ->expects($this->any())
-            ->method('getFromFile')
-            ->willReturn($file)
-        ;
-
-        $container = $this->mockContainerWithContaoScopes();
-
-        $container->set(
-            'contao.framework',
-            $this->mockContaoFramework(
-                null,
-                null,
-                [],
-                ['Contao\Database\Installer' => $installer]
-            )
-        );
-
-        $container->set('database_connection', $connection);
-
-        return new DcaSchemaProvider($container);
     }
 
     /**

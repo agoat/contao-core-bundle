@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -276,34 +276,10 @@ class Config
 			opcache_invalidate(TL_ROOT . '/system/config/localconfig.php', true);
 		}
 
-		// Reset the Zend Optimizer+ cache (unfortunately no API to delete just a single file)
-		if (function_exists('accelerator_reset'))
-		{
-			accelerator_reset();
-		}
-
 		// Recompile the APC file (thanks to Trenker)
 		if (function_exists('apc_compile_file') && !ini_get('apc.stat'))
 		{
 			apc_compile_file(TL_ROOT . '/system/config/localconfig.php');
-		}
-
-		// Purge the eAccelerator cache (thanks to Trenker)
-		if (function_exists('eaccelerator_purge') && !ini_get('eaccelerator.check_mtime'))
-		{
-			@eaccelerator_purge();
-		}
-
-		// Purge the XCache cache (thanks to Trenker)
-		if (function_exists('xcache_count') && !ini_get('xcache.stat'))
-		{
-			if (($count = xcache_count(XC_TYPE_PHP)) > 0)
-			{
-				for ($id=0; $id<$count; $id++)
-				{
-					xcache_clear_cache(XC_TYPE_PHP, $id);
-				}
-			}
 		}
 
 		$this->blnIsModified = false;
@@ -317,17 +293,7 @@ class Config
 	 */
 	public static function isComplete()
 	{
-		if (!static::$blnHasLcf)
-		{
-			return false;
-		}
-
-		if (!static::has('licenseAccepted'))
-		{
-			return false;
-		}
-
-		return true;
+		return static::$blnHasLcf !== null && static::has('licenseAccepted');
 	}
 
 
@@ -555,7 +521,7 @@ class Config
 	 */
 	protected function escape($varValue)
 	{
-		if (is_numeric($varValue) && !preg_match('/e|^00+/', $varValue) && $varValue < PHP_INT_MAX)
+		if (is_numeric($varValue) && !preg_match('/e|^[+-]?0[^.]/', $varValue) && $varValue < PHP_INT_MAX)
 		{
 			return $varValue;
 		}

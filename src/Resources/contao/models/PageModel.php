@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -541,8 +541,7 @@ class PageModel extends \Model
 	public static function findPublishedByIdOrAlias($varId, array $arrOptions=array())
 	{
 		$t = static::$strTable;
-		$arrColumns = array("($t.id=? OR $t.alias=?)");
-		$arrValues = array((is_numeric($varId) ? $varId : 0), $varId);
+		$arrColumns = !is_numeric($varId) ? array("$t.alias=?") : array("$t.id=?");
 
 		if (isset($arrOptions['ignoreFePreview']) || !BE_USER_LOGGED_IN)
 		{
@@ -550,7 +549,7 @@ class PageModel extends \Model
 			$arrColumns[] = "($t.start='' OR $t.start<='$time') AND ($t.stop='' OR $t.stop>'" . ($time + 60) . "') AND $t.published='1'";
 		}
 
-		return static::findBy($arrColumns, $arrValues, $arrOptions);
+		return static::findBy($arrColumns, $varId, $arrOptions);
 	}
 
 
@@ -656,7 +655,7 @@ class PageModel extends \Model
 	 * @param string $strHost    The hostname
 	 * @param array  $arrOptions An optional options array
 	 *
-	 * @return PageModel|null The model or null if there is not fallback page
+	 * @return PageModel|Model|null The model or null if there is not fallback page
 	 */
 	public static function findPublishedFallbackByHostname($strHost, array $arrOptions=array())
 	{
@@ -889,8 +888,8 @@ class PageModel extends \Model
 					// Cache
 					if ($objParentPage->includeCache)
 					{
-						$this->cache = $this->cache ?: $objParentPage->cache;
-						$this->clientCache = $this->clientCache ?: $objParentPage->clientCache;
+						$this->cache = $this->cache !== false ? $this->cache : $objParentPage->cache;
+						$this->clientCache = $this->clientCache !== false ? $this->clientCache : $objParentPage->clientCache;
 					}
 
 					// Layout

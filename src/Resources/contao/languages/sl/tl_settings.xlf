@@ -49,14 +49,6 @@
         <source>Please select the server time zone.</source>
         <target>Prosimo, izberite časovni pas strežnika.</target>
       </trans-unit>
-      <trans-unit id="tl_settings.websitePath.0">
-        <source>Relative path to the Contao directory</source>
-        <target>Relativna pot do Contao imenika.</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.websitePath.1">
-        <source>The relative path to the Contao directory is usually set automatically by the install tool.</source>
-        <target>Relativno pot do Contao imenika praviloma samodejno nastavi orodje za namestitev.</target>
-      </trans-unit>
       <trans-unit id="tl_settings.characterSet.0">
         <source>Character set</source>
         <target>Nabor znakov.</target>
@@ -70,8 +62,7 @@
         <target>Onemogoči ukaz periodičnih opravil</target>
       </trans-unit>
       <trans-unit id="tl_settings.disableCron.1">
-        <source>Disable the periodic command scheduler and execute the cron.php script by a real cron job (which you have to set up manually).</source>
-        <target>Onemogoči ukaz periodičnih opravil in izvajaj cron.php skripto s pravim cron opravilom (katerega morate nastaviti ročno na strežniku)</target>
+        <source>Disable the periodic command scheduler and trigger the &lt;em&gt;_contao/cron&lt;/em&gt; route by a real cron job (which you have to set up manually).</source>
       </trans-unit>
       <trans-unit id="tl_settings.minifyMarkup.0">
         <source>Minify the markup</source>
@@ -111,6 +102,7 @@
       </trans-unit>
       <trans-unit id="tl_settings.fileSyncExclude.1">
         <source>Here you can enter a comma separated list of folders which will be exempt from the files synchronization (e.g. &lt;em&gt;attachments,music_academy&lt;/em&gt;). Note that excluded resources cannot be used in e.g. image or download elements!</source>
+        <target>Tukaj vpišite seznam direktorijev, ločenih z vejico, ki bodo izločeni iz sinhronizacije datotek (primer: &lt;em&gt;attachments,music_academy&lt;/em&gt;). Izločenih virov ni mogoče uporabljati v slika ali prenos elementu.</target>
       </trans-unit>
       <trans-unit id="tl_settings.doNotCollapse.0">
         <source>Do not collapse elements</source>
@@ -122,9 +114,11 @@
       </trans-unit>
       <trans-unit id="tl_settings.sslProxyDomain.0">
         <source>SSL proxy domain</source>
+        <target>SSL proxy domena</target>
       </trans-unit>
       <trans-unit id="tl_settings.sslProxyDomain.1">
         <source>If your website is available via an SSL proxy server, please enter its domain here (e.g. &lt;em&gt;sslsites.de&lt;/em&gt;).</source>
+        <target>Če je vaša spletna stran dosegljiva preko SSL proxy strežnika, vpišite njeno domeno tukaj (primer: &lt;em&gt;sslsites.si&lt;/em&gt;).</target>
       </trans-unit>
       <trans-unit id="tl_settings.privacyAnonymizeIp.0">
         <source>Anonymize IP addresses</source>
@@ -148,6 +142,7 @@
       </trans-unit>
       <trans-unit id="tl_settings.doNotRedirectEmpty.1">
         <source>For an empty URL display the website instead of redirecting to the language root page (not recommended).</source>
+        <target>Za prazen URL naslov, prikaži spletno stran namesto preusmeritve na korensko stran jezika (ni priporočljivo).</target>
       </trans-unit>
       <trans-unit id="tl_settings.useAutoItem.0">
         <source>Enable auto_item</source>
@@ -155,12 +150,15 @@
       </trans-unit>
       <trans-unit id="tl_settings.useAutoItem.1">
         <source>Skip the &lt;em&gt;items/&lt;/em&gt; or &lt;em&gt;events/&lt;/em&gt; fragment in the URL and automatically discover the item based on the &lt;em&gt;auto_item&lt;/em&gt; parameter.</source>
+        <target>Preskoči &lt;em&gt;items/&lt;/em&gt; ali &lt;em&gt;events/&lt;/em&gt; del URL naslova in avtomatično pridobi postavko glede na &lt;em&gt;auto_item&lt;/em&gt; parameter.</target>
       </trans-unit>
       <trans-unit id="tl_settings.folderUrl.0">
         <source>Enable folder URLs</source>
+        <target>Vklopi URL direktorije</target>
       </trans-unit>
       <trans-unit id="tl_settings.folderUrl.1">
         <source>Here you can enable folder-style page aliases like &lt;em&gt;docs/install/download.html&lt;/em&gt; instead of &lt;em&gt;docs-install-download.html&lt;/em&gt;.</source>
+        <target>Tukaj lahko vklopite aliase strani v obliki direktorijev, kot naprimer &lt;em&gt;docs/install/download.html&lt;/em&gt; namesto &lt;em&gt;docs-install-download.html&lt;/em&gt;.</target>
       </trans-unit>
       <trans-unit id="tl_settings.allowedTags.0">
         <source>Allowed HTML tags</source>
@@ -176,6 +174,7 @@
       </trans-unit>
       <trans-unit id="tl_settings.disableRefererCheck.1">
         <source>Do not check the request token when a form is submitted (insecure!).</source>
+        <target>Ne preveri žetona zahteve ob predložitvi obrazca (ni varno).</target>
       </trans-unit>
       <trans-unit id="tl_settings.lockPeriod.0">
         <source>Account locking time</source>
@@ -367,6 +366,7 @@
       </trans-unit>
       <trans-unit id="tl_settings.proxy_legend">
         <source>Proxy configuration</source>
+        <target>Nastavitev proxy</target>
       </trans-unit>
       <trans-unit id="tl_settings.privacy_legend">
         <source>Privacy settings</source>
@@ -388,10 +388,6 @@
         <source>Search engine settings</source>
         <target>Nastavitve iskanja</target>
       </trans-unit>
-      <trans-unit id="tl_settings.modules_legend">
-        <source>Inactive extensions</source>
-        <target>Neaktivne razširitve</target>
-      </trans-unit>
       <trans-unit id="tl_settings.timeout_legend">
         <source>Timeout values</source>
         <target>Določitev časovnih vrednosti</target>
@@ -400,29 +396,9 @@
         <source>Default access rights</source>
         <target>Privzete pravice dostopa</target>
       </trans-unit>
-      <trans-unit id="tl_settings.static_legend">
-        <source>Static resources</source>
-        <target>Statični viri</target>
-      </trans-unit>
       <trans-unit id="tl_settings.edit">
         <source>Edit the local configuration</source>
         <target>Uredi krajevne nastavitve</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.both">
-        <source>Use the server and the browser cache</source>
-        <target>Uporabi medpomnilnik strežnika in brskalnika</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.server">
-        <source>Use only the server cache</source>
-        <target>Uporabi le medpomnilnik strežnika</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.browser">
-        <source>Use only the browser cache</source>
-        <target>Uporabi le medpomnilnik brskalnika</target>
-      </trans-unit>
-      <trans-unit id="tl_settings.none">
-        <source>Disable caching</source>
-        <target>Onemogoči medpomnenje</target>
       </trans-unit>
     </body>
   </file>

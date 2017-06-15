@@ -3,7 +3,7 @@
 /**
  * Contao Open Source CMS
  *
- * Copyright (c) 2005-2016 Leo Feyer
+ * Copyright (c) 2005-2017 Leo Feyer
  *
  * @license LGPL-3.0+
  */
@@ -118,6 +118,11 @@ class ModuleBooknav extends \Module
 
 		$arrLookup = array_keys($this->arrPages);
 		$intCurrent = array_search($objPage->id, $arrLookup);
+
+		if ($intCurrent === false)
+		{
+			return; // see #8665
+		}
 
 		// HOOK: add pagination info
 		$this->Template->currentPage = $intCurrent;
