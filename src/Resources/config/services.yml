@@ -13,7 +13,7 @@ services:
         arguments:
             - "%kernel.cache_dir%/contao/cache"
             - ""
-            - 0022
+            - 0002
 
     contao.cache.clear_internal:
         class: Contao\CoreBundle\Cache\ContaoCacheClearer
